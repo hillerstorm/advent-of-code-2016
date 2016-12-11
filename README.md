@@ -2,7 +2,8 @@
 
 ## Build Instructions
 
-Run the following commands from the root folder:
+Either run `elm-reactor` in the root folder and navigate to the appropriate
+`.elm`-file or run the following commands from the root folder:
 
 > elm-make day**X**/Part1.elm --output day**X**/part1.js
 
