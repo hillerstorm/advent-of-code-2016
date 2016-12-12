@@ -57,51 +57,51 @@ type Direction
     | Right
 
 
-solve : List (List Direction) -> Int -> String -> String
-solve list current code =
+solve : Int -> String -> List (List Direction) -> String
+solve key code list =
     case list of
         [] ->
             code
 
         row :: rest ->
             let
-                ( nextCurrent, nextCode ) =
-                    solveRow row current code
+                ( nextKey, nextCode ) =
+                    solveRow row key code
             in
-                solve rest nextCurrent nextCode
+                solve nextKey nextCode rest
 
 
 solveRow : List Direction -> Int -> String -> ( Int, String )
-solveRow list current code =
+solveRow list key code =
     case list of
         [] ->
-            ( current, code ++ (toString current) )
+            ( key, code ++ (toString key) )
 
         dir :: rest ->
             let
-                nextCurrent =
-                    move dir current
+                nextKey =
+                    move dir key
             in
-                solveRow rest nextCurrent code
+                solveRow rest nextKey code
 
 
 move : Direction -> Int -> Int
-move direction current =
-    if direction == Up && current > 3 then
-        current - 3
-    else if direction == Down && current < 7 then
-        current + 3
-    else if direction == Left && (current + 2) % 3 > 0 then
-        current - 1
-    else if direction == Right && current % 3 > 0 then
-        current + 1
+move direction key =
+    if direction == Up && key > 3 then
+        key - 3
+    else if direction == Down && key < 7 then
+        key + 3
+    else if direction == Left && (key + 2) % 3 > 0 then
+        key - 1
+    else if direction == Right && key % 3 > 0 then
+        key + 1
     else
-        current
+        key
 
 
 main : Html msg
 main =
     div []
         [ div [] [ text ("Input: " ++ input) ]
-        , div [] [ text ("Result: " ++ toString (solve (parse input) 5 "")) ]
+        , div [] [ text ("Result: " ++ (parse input |> solve 5 "" |> toString)) ]
         ]
