@@ -3,9 +3,46 @@ module Day1Part2 exposing (..)
 import Html exposing (..)
 
 
-input : List Move
+input : String
 input =
-    [ R 2, L 3, R 2, R 4, L 2, L 1, R 2, R 4, R 1, L 4, L 5, R 5, R 5, R 2, R 2, R 1, L 2, L 3, L 2, L 1, R 3, L 5, R 187, R 1, R 4, L 1, R 5, L 3, L 4, R 50, L 4, R 2, R 70, L 3, L 2, R 4, R 3, R 194, L 3, L 4, L 4, L 3, L 4, R 4, R 5, L 1, L 5, L 4, R 1, L 2, R 4, L 5, L 3, R 4, L 5, L 5, R 5, R 3, R 5, L 2, L 4, R 4, L 1, R 3, R 1, L 1, L 2, R 2, R 2, L 3, R 3, R 2, R 5, R 2, R 5, L 3, R 2, L 5, R 1, R 2, R 2, L 4, L 5, L 1, L 4, R 4, R 3, R 1, R 2, L 1, L 2, R 4, R 5, L 2, R 3, L 4, L 5, L 5, L 4, R 4, L 2, R 1, R 1, L 2, L 3, L 2, R 2, L 4, R 3, R 2, L 1, L 3, L 2, L 4, L 4, R 2, L 3, L 3, R 2, L 4, L 3, R 4, R 3, L 2, L 1, L 4, R 4, R 2, L 4, L 4, L 5, L 1, R 2, L 5, L 2, L 3, R 2, L 2 ]
+    "R2, L3, R2, R4, L2, L1, R2, R4, R1, L4, L5, R5, R5, R2, R2, R1, L2, L3, L2, L1, R3, L5, R187, R1, R4, L1, R5, L3, L4, R50, L4, R2, R70, L3, L2, R4, R3, R194, L3, L4, L4, L3, L4, R4, R5, L1, L5, L4, R1, L2, R4, L5, L3, R4, L5, L5, R5, R3, R5, L2, L4, R4, L1, R3, R1, L1, L2, R2, R2, L3, R3, R2, R5, R2, R5, L3, R2, L5, R1, R2, R2, L4, L5, L1, L4, R4, R3, R1, R2, L1, L2, R4, R5, L2, R3, L4, L5, L5, L4, R4, L2, R1, R1, L2, L3, L2, R2, L4, R3, R2, L1, L3, L2, L4, L4, R2, L3, L3, R2, L4, L3, R4, R3, L2, L1, L4, R4, R2, L4, L4, L5, L1, R2, L5, L2, L3, R2, L2"
+
+
+parse : String -> List Move
+parse string =
+    (String.split ", " string)
+        |> List.foldr parseMove []
+
+
+parseMove : String -> List Move -> List Move
+parseMove move list =
+    let
+        parsedMove =
+            String.uncons move
+    in
+        case parsedMove of
+            Just ( chr, steps ) ->
+                let
+                    result =
+                        String.toInt steps
+                in
+                    case result of
+                        Ok x ->
+                            case chr of
+                                'R' ->
+                                    R x :: list
+
+                                'L' ->
+                                    L x :: list
+
+                                _ ->
+                                    list
+
+                        _ ->
+                            list
+
+            Nothing ->
+                list
 
 
 type Move
@@ -13,8 +50,8 @@ type Move
     | R Int
 
 
-solve : List Move -> Position -> Direction -> List Position -> Maybe Int
-solve moves position direction visited =
+solve : Position -> Direction -> List Position -> List Move -> Maybe Int
+solve position direction visited moves =
     case moves of
         [] ->
             Nothing
@@ -37,7 +74,7 @@ solve moves position direction visited =
             in
                 case result of
                     Continue ( nextPosition, nextVisited ) ->
-                        solve rest nextPosition nextDirection nextVisited
+                        solve nextPosition nextDirection nextVisited rest
 
                     Intersection nextPosition ->
                         Just (distance nextPosition)
@@ -138,5 +175,5 @@ main : Html msg
 main =
     div []
         [ div [] [ text ("Input: " ++ (toString input)) ]
-        , div [] [ text ("Result: " ++ (toString (solve input startPosition North []))) ]
+        , div [] [ text ("Result: " ++ (parse input |> solve startPosition North [] |> toString)) ]
         ]
