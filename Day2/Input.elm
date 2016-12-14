@@ -1,10 +1,8 @@
-module Day2Part1 exposing (..)
-
-import Html exposing (..)
+module Day2.Input exposing (rawInput, Direction(..), parsedInput)
 
 
-input : String
-input =
+rawInput : String
+rawInput =
     """DLRRRRLRLDRRRURRURULRLLULUURRRDDLDULDULLUUDLURLURLLDLUUUDUUUULDRDUUDUDDRRLRDDDUDLDLLRUURDRULUULRLRDULULLRLRLRLDRLUULDLDDDDRRLRUUUDDRURRULLLRURLUURULLRLUDDLDRUULDRURULRRRLLLRDLULDRRDDUDLURURLDULDRDRLDDUURRDUDDRDUURDULDUURDUDRDRULDUDUULRRULUUURDUURUDLDURDLRLURUUDRRDLRUDRULRURLDLLDLLRRDRDRLRRRULDRRLDUURLUUDLUUDDLLRULRDUUDURURLUURDRRRUDLRDULRRRLDRDULRUUDDDLRDUULDRLLDRULUULULRDRUUUULULLRLLLRUURUULRRLDDDRULRRRUDURUR
 RULRUUUDLLUDURDRDDLLRLLUDRUDDRLRRDLDLDRDULDLULURDLUDDDUULURLDRUUURURLLRRDDDUUDRLRLLDLDRDDDRDUDLRDRDLLLDDLDUDDRUDUUDLLLLLDULRLURRRLLURUUULUDRLRLRLURRDRLLLRLLULRLLLDDLRLRDLUUUUUDULULDDULLUDUURDLRUDLRUDLRLLRLDLULRLDUDRURURDLRULDLULULDLLDLDLDLLLUDUDDLRLRRDULLUDRDDLLLDUURDULUDURLLLDRUDDDLRLULDLDRRDDDRDULDDUDRDDULLULRRLRUULRDUDURUDULUDUDURLDRDUUDDRRLRURDRRLRDDDDRUDLUDLDDLRDLUUDLRRURDDLURDLRDLLRDRDLDLDUUUURULUULDDDDLDULUURRRULUDLLLDRULDRURL
 RRRLRDLLDUURDRRRLURDUULUDURDRRUUDURURRLDLLDRDLRRURDDUDDURLRUUDDULULRUUDRLUUDDLLDDDLRRRDLLLLLLRRURDULDLURRURRDDLDDDUDURRDURRRLUDRRULLRULDRLULRULDDRLLRDLRDUURULURLUURLRRULDULULUULDUDLRLDRDDRRRUUULULDUURLRLLURRLURDUUDDDRUULDLLLDRUURLRRLLDDUDRDLDDDULDRDDDUDRRLLLULURDUDLLUUURRLDULURURDDLUDLLRLDRULULURDLDRLURDLRRDRRUULLULDLURRDDUDRDDDLDUDLDRRUDRULDLDULRLLRRRRDDRLUURRRRDDLLRUURRLRURULDDULRLULRURRUULDUUDURDRRLRLUDRULDRUULUUDRDURDURRLULDDDULDDLRDURRUUUUUDDRRDLRDULUUDDL
@@ -57,51 +55,6 @@ type Direction
     | Right
 
 
-solve : Int -> String -> List (List Direction) -> String
-solve key code list =
-    case list of
-        [] ->
-            code
-
-        row :: rest ->
-            let
-                ( nextKey, nextCode ) =
-                    solveRow row key code
-            in
-                solve nextKey nextCode rest
-
-
-solveRow : List Direction -> Int -> String -> ( Int, String )
-solveRow list key code =
-    case list of
-        [] ->
-            ( key, code ++ (toString key) )
-
-        dir :: rest ->
-            let
-                nextKey =
-                    move dir key
-            in
-                solveRow rest nextKey code
-
-
-move : Direction -> Int -> Int
-move direction key =
-    if direction == Up && key > 3 then
-        key - 3
-    else if direction == Down && key < 7 then
-        key + 3
-    else if direction == Left && (key + 2) % 3 > 0 then
-        key - 1
-    else if direction == Right && key % 3 > 0 then
-        key + 1
-    else
-        key
-
-
-main : Html msg
-main =
-    div []
-        [ div [] [ text ("Input: " ++ input) ]
-        , div [] [ text ("Result: " ++ (parse input |> solve 5 "" |> toString)) ]
-        ]
+parsedInput : List (List Direction)
+parsedInput =
+    parse rawInput
