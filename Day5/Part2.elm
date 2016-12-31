@@ -19,22 +19,15 @@ nextChar index =
             index + 1
     in
         if String.startsWith "00000" hash then
-            let
-                idx =
-                    String.toInt <| String.slice 5 6 hash
-
-                char =
-                    String.slice 6 7 hash
-            in
-                case idx of
-                    Ok i ->
-                        if i >= String.length input then
-                            nextChar nextIndex
-                        else
-                            ( char, i, nextIndex )
-
-                    Err _ ->
+            case String.toInt <| String.slice 5 6 hash of
+                Ok i ->
+                    if i >= String.length input then
                         nextChar nextIndex
+                    else
+                        ( String.slice 6 7 hash, i, nextIndex )
+
+                Err _ ->
+                    nextChar nextIndex
         else
             nextChar nextIndex
 
