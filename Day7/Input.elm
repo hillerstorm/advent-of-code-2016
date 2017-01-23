@@ -2007,9 +2007,21 @@ dkodbaotlfdaphwzbcc[ldzeemqiovyqjgs]qxibabdusgaistkru[usglloxgycyynmp]aaocvclsoc
 bwzsacxgqkbjycgfw[dbnligvrmqscasutn]rbgybqqsgjvlonkut"""
 
 
+parsedInput : List IPv7
+parsedInput =
+    List.map mapAddress <| String.lines rawInput
+
+
 type alias IPv7 =
     { hypernets : List String
     , supernets : List String
+    }
+
+
+mapAddress : String -> IPv7
+mapAddress line =
+    { supernets = parse supernetPattern line
+    , hypernets = parse hypernetPattern line
     }
 
 
@@ -2026,15 +2038,3 @@ supernetPattern =
 hypernetPattern : Regex.Regex
 hypernetPattern =
     regex "\\[(\\w+)\\]"
-
-
-mapAddress : String -> IPv7
-mapAddress line =
-    { supernets = parse supernetPattern line
-    , hypernets = parse hypernetPattern line
-    }
-
-
-parsedInput : List IPv7
-parsedInput =
-    List.map mapAddress <| String.lines rawInput

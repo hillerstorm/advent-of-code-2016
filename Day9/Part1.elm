@@ -4,68 +4,72 @@ import Html exposing (..)
 import Day9.Input exposing (rawInput)
 
 
-parseMarker : String -> String -> ( String, String )
-parseMarker str chars =
-    case String.indexes ")" chars of
-        [] ->
-            ( str ++ "(", chars )
+endParenIdx : String -> Int -> Maybe Int
+endParenIdx str idx =
+    case String.uncons str of
+        Just ( ')', xs ) ->
+            Just idx
 
-        idx :: _ ->
-            let
-                marker =
-                    String.split "x" <| String.left idx chars
-            in
-                case marker of
-                    [ a, b ] ->
-                        case ( String.toInt a, String.toInt b ) of
-                            ( Ok ax, Ok bx ) ->
-                                let
-                                    fromIdx =
-                                        idx + 1
+        Just ( _, xs ) ->
+            endParenIdx xs <| idx + 1
 
-                                    toIdx =
-                                        fromIdx + ax
-
-                                    repeated =
-                                        String.repeat bx <| String.slice fromIdx toIdx chars
-
-                                    newChars =
-                                        String.dropLeft toIdx chars
-                                in
-                                    ( str ++ repeated, newChars )
-
-                            _ ->
-                                ( str ++ "(", chars )
-
-                    _ ->
-                        ( str ++ "(", chars )
+        Nothing ->
+            Nothing
 
 
-parse : String -> String -> String
-parse str chars =
+parseMarker : String -> ( Int, String )
+parseMarker chars =
+    case endParenIdx chars 0 of
+        Just idx ->
+            case String.split "x" <| String.left idx chars of
+                [ a, b ] ->
+                    case ( String.toInt a, String.toInt b ) of
+                        ( Ok ax, Ok bx ) ->
+                            let
+                                fromIdx =
+                                    idx + 1
+
+                                toIdx =
+                                    fromIdx + ax
+
+                                newCount =
+                                    (toIdx - fromIdx) * bx
+
+                                newChars =
+                                    String.dropLeft toIdx chars
+                            in
+                                ( newCount, newChars )
+
+                        _ ->
+                            ( 1, chars )
+
+                _ ->
+                    ( 1, chars )
+
+        Nothing ->
+            ( 1, chars )
+
+
+parse : Int -> String -> Int
+parse count chars =
     case String.uncons chars of
         Just ( '(', xs ) ->
             let
-                ( newStr, rest ) =
-                    parseMarker str xs
+                ( newCount, newChars ) =
+                    parseMarker xs
             in
-                parse newStr rest
+                parse (count + newCount) newChars
 
-        Just ( chr, xs ) ->
-            parse (str ++ (String.fromChar chr)) xs
+        Just ( _, xs ) ->
+            parse (count + 1) xs
 
         Nothing ->
-            str
-
-
-decompress : String -> String
-decompress =
-    parse "" << String.concat << String.words
+            count
 
 
 main : Html msg
 main =
     div []
         [ div [] [ text ("Input: " ++ rawInput) ]
-        , div [] [ text ("Result: " ++ (toString <| String.length <| decompress rawInput)) ]
+        , div [] [ text ("Result: " ++ (toString <| parse 0 rawInput)) ]
         ]

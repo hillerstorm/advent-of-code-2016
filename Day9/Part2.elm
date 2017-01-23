@@ -4,81 +4,82 @@ import Html exposing (..)
 import Day9.Input exposing (rawInput)
 
 
-parseMarker : Int -> String -> ( Int, String )
-parseMarker count chars =
-    case String.indexes ")" chars of
-        [] ->
-            ( count + 1, chars )
-
-        idx :: _ ->
-            let
-                marker =
-                    String.split "x" <| String.left idx chars
-            in
-                case marker of
-                    [ a, b ] ->
-                        case ( String.toInt a, String.toInt b ) of
-                            ( Ok ax, Ok 1 ) ->
-                                ( count, String.dropLeft (idx + 1) chars )
-
-                            ( Ok ax, Ok bx ) ->
-                                let
-                                    fromIdx =
-                                        idx + 1
-
-                                    toIdx =
-                                        fromIdx + ax
-                                in
-                                    if ax < 6 then
-                                        ( count + (ax * bx), String.dropLeft toIdx chars )
-                                    else
-                                        let
-                                            chrs =
-                                                String.slice fromIdx toIdx chars
-
-                                            newCount =
-                                                if String.contains "(" chrs then
-                                                    parse 0 <| String.repeat bx <| chrs
-                                                else
-                                                    ax * bx
-
-                                            newChars =
-                                                String.dropLeft toIdx chars
-                                        in
-                                            ( count + newCount, newChars )
-
-                            _ ->
-                                ( count + 1, chars )
-
-                    _ ->
-                        ( count + 1, chars )
-
-
 parse : Int -> String -> Int
 parse count chars =
     case String.uncons chars of
         Just ( '(', xs ) ->
             let
-                ( newCount, rest ) =
-                    parseMarker count xs
+                ( newCount, newChars ) =
+                    parseMarker xs
+                        |> endParenIdx xs 0
+                        |> Maybe.withDefault ( 1, xs )
             in
-                parse newCount rest
+                parse (count + newCount) newChars
 
-        Just ( chr, xs ) ->
+        Just ( _, xs ) ->
             parse (count + 1) xs
 
         Nothing ->
             count
 
 
-decompress : String -> Int
-decompress =
-    parse 0 << String.concat << String.words
+endParenIdx : String -> Int -> (Int -> Maybe ( Int, String )) -> Maybe ( Int, String )
+endParenIdx str idx f =
+    case String.uncons str of
+        Just ( ')', xs ) ->
+            f idx
+
+        Just ( _, xs ) ->
+            endParenIdx xs (idx + 1) f
+
+        Nothing ->
+            Nothing
+
+
+parseMarker : String -> Int -> Maybe ( Int, String )
+parseMarker chars idx =
+    case String.split "x" <| String.left idx chars of
+        [ a, b ] ->
+            case ( String.toInt a, String.toInt b ) of
+                ( Ok ax, Ok 1 ) ->
+                    Just ( 0, String.dropLeft (idx + 1) chars )
+
+                ( Ok ax, Ok bx ) ->
+                    let
+                        fromIdx =
+                            idx + 1
+
+                        toIdx =
+                            fromIdx + ax
+
+                        newChars =
+                            String.dropLeft toIdx chars
+                    in
+                        if ax < 6 then
+                            Just ( ax * bx, newChars )
+                        else
+                            let
+                                chrs =
+                                    String.slice fromIdx toIdx chars
+
+                                newCount =
+                                    if String.contains "(" chrs then
+                                        parse 0 <| String.repeat bx chrs
+                                    else
+                                        ax * bx
+                            in
+                                Just ( newCount, newChars )
+
+                _ ->
+                    Nothing
+
+        _ ->
+            Nothing
 
 
 main : Html msg
 main =
     div []
         [ div [] [ text ("Input: " ++ rawInput) ]
-        , div [] [ text ("Result: " ++ (toString <| decompress rawInput)) ]
+        , div [] [ text ("Result: " ++ (toString <| parse 0 rawInput)) ]
         ]
