@@ -13,7 +13,7 @@ solve key code list =
         row :: rest ->
             let
                 ( nextKey, nextCode ) =
-                    solveRow row key code
+                    solveRow row code key
             in
                 solve nextKey nextCode rest
 
@@ -26,27 +26,24 @@ type Key
     | D
 
 
-solveRow : List Direction -> Key -> String -> ( Key, String )
-solveRow list key code =
+solveRow : List Direction -> String -> Key -> ( Key, String )
+solveRow list code key =
     case list of
         [] ->
-            let
-                strKey =
-                    case key of
-                        N i ->
-                            toString i
-
-                        _ ->
-                            toString key
-            in
-                ( key, code ++ strKey )
+            ( key, code ++ strKey key )
 
         dir :: rest ->
-            let
-                nextKey =
-                    move dir key
-            in
-                solveRow rest nextKey code
+            solveRow rest code <| move dir key
+
+
+strKey : Key -> String
+strKey key =
+    case key of
+        N i ->
+            toString i
+
+        _ ->
+            toString key
 
 
 move : Direction -> Key -> Key
@@ -206,5 +203,5 @@ main : Html msg
 main =
     div []
         [ div [] [ text ("Input: " ++ rawInput) ]
-        , div [] [ text ("Result: " ++ (solve (N 5) "" parsedInput |> toString)) ]
+        , div [] [ text ("Result: " ++ (solve (N 5) "" parsedInput)) ]
         ]

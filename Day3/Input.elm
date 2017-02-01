@@ -1604,23 +1604,9 @@ rawInput =
 919  923  873"""
 
 
-toInt : String -> Maybe Int
-toInt str =
-    let
-        result =
-            String.toInt str
-    in
-        case result of
-            Ok v ->
-                Just v
-
-            Err x ->
-                Nothing
-
-
 parsedInput : List (List Int)
 parsedInput =
     rawInput
         |> String.lines
         |> List.map String.words
-        |> List.map (List.filterMap toInt)
+        |> List.map (List.filterMap (Result.toMaybe << String.toInt))

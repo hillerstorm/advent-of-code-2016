@@ -1,14 +1,23 @@
 module Day1.Part1 exposing (main)
 
 import Html exposing (..)
+import Tuple exposing (mapFirst, mapSecond)
 import Day1.Input exposing (rawInput, Move(..), parsedInput)
 
 
-solve : Position -> Direction -> List Move -> Int
-solve position direction moves =
+main : Html msg
+main =
+    div []
+        [ div [] [ text ("Input: " ++ (rawInput)) ]
+        , div [] [ text ("Result: " ++ (toString <| solve North parsedInput ( 0, 0 ))) ]
+        ]
+
+
+solve : Direction -> List Move -> Position -> Int
+solve direction moves =
     case moves of
         [] ->
-            distance position
+            distance
 
         move :: rest ->
             let
@@ -17,17 +26,8 @@ solve position direction moves =
 
                 steps =
                     blocks move
-
-                nextPosition =
-                    moveForward position nextDirection steps
             in
-                solve nextPosition nextDirection rest
-
-
-type alias Position =
-    { x : Int
-    , y : Int
-    }
+                solve nextDirection rest << moveForward nextDirection steps
 
 
 type Direction
@@ -37,41 +37,41 @@ type Direction
     | West
 
 
+type alias Position =
+    ( Int, Int )
+
+
 distance : Position -> Int
-distance { x, y } =
+distance ( x, y ) =
     (abs x) + (abs y)
 
 
 turn : Move -> Direction -> Direction
 turn move direction =
-    case move of
-        L _ ->
-            case direction of
-                North ->
-                    West
+    case ( move, direction ) of
+        ( L _, North ) ->
+            West
 
-                East ->
-                    North
+        ( L _, East ) ->
+            North
 
-                South ->
-                    East
+        ( L _, South ) ->
+            East
 
-                West ->
-                    South
+        ( L _, West ) ->
+            South
 
-        R _ ->
-            case direction of
-                South ->
-                    West
+        ( R _, South ) ->
+            West
 
-                West ->
-                    North
+        ( R _, West ) ->
+            North
 
-                North ->
-                    East
+        ( R _, North ) ->
+            East
 
-                East ->
-                    South
+        ( R _, East ) ->
+            South
 
 
 blocks : Move -> Int
@@ -84,32 +84,17 @@ blocks move =
             x
 
 
-moveForward : Position -> Direction -> Int -> Position
-moveForward position direction steps =
+moveForward : Direction -> Int -> Position -> Position
+moveForward direction =
     case direction of
         North ->
-            { position | y = position.y + steps }
-
-        East ->
-            { position | x = position.x + steps }
+            mapSecond << (+)
 
         South ->
-            { position | y = position.y - steps }
+            mapSecond << flip (-)
+
+        East ->
+            mapFirst << (+)
 
         West ->
-            { position | x = position.x - steps }
-
-
-startPosition : Position
-startPosition =
-    { x = 0
-    , y = 0
-    }
-
-
-main : Html msg
-main =
-    div []
-        [ div [] [ text ("Input: " ++ (rawInput)) ]
-        , div [] [ text ("Result: " ++ (solve startPosition North parsedInput |> toString)) ]
-        ]
+            mapFirst << flip (-)

@@ -1,35 +1,28 @@
 module Day2.Part1 exposing (main)
 
 import Html exposing (..)
+import Tuple exposing (first)
 import Day2.Input exposing (rawInput, parsedInput, Direction(..))
 
 
-solve : Int -> String -> List (List Direction) -> String
-solve key code list =
+solve : List (List Direction) -> ( String, Int ) -> String
+solve list =
     case list of
         [] ->
-            code
+            first
 
         row :: rest ->
-            let
-                ( nextKey, nextCode ) =
-                    solveRow row key code
-            in
-                solve nextKey nextCode rest
+            solve rest << solveRow row
 
 
-solveRow : List Direction -> Int -> String -> ( Int, String )
-solveRow list key code =
+solveRow : List Direction -> ( String, Int ) -> ( String, Int )
+solveRow list ( code, key ) =
     case list of
         [] ->
-            ( key, code ++ (toString key) )
+            ( code ++ (toString key), key )
 
         dir :: rest ->
-            let
-                nextKey =
-                    move dir key
-            in
-                solveRow rest nextKey code
+            solveRow rest ( code, move dir key )
 
 
 move : Direction -> Int -> Int
@@ -50,5 +43,5 @@ main : Html msg
 main =
     div []
         [ div [] [ text ("Input: " ++ rawInput) ]
-        , div [] [ text ("Result: " ++ (solve 5 "" parsedInput |> toString)) ]
+        , div [] [ text ("Result: " ++ (solve parsedInput ( "", 5 ))) ]
         ]

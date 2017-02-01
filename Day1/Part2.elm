@@ -4,6 +4,14 @@ import Html exposing (..)
 import Day1.Input exposing (rawInput, Move(..), parsedInput)
 
 
+main : Html msg
+main =
+    div []
+        [ div [] [ text ("Input: " ++ rawInput) ]
+        , div [] [ text ("Result: " ++ (toString <| solve ( 0, 0 ) North [] parsedInput)) ]
+        ]
+
+
 solve : Position -> Direction -> List Position -> List Move -> Maybe Int
 solve position direction visited moves =
     case moves of
@@ -34,15 +42,8 @@ solve position direction visited moves =
                         Just (distance nextPosition)
 
 
-distance : Position -> Int
-distance { x, y } =
-    (abs x) + (abs y)
-
-
 type alias Position =
-    { x : Int
-    , y : Int
-    }
+    ( Int, Int )
 
 
 type Direction
@@ -52,82 +53,72 @@ type Direction
     | West
 
 
+distance : Position -> Int
+distance ( x, y ) =
+    (abs x) + (abs y)
+
+
 turn : Move -> Direction -> Direction
 turn move direction =
-    case move of
-        L _ ->
-            case direction of
-                North ->
-                    West
+    case ( move, direction ) of
+        ( L _, North ) ->
+            West
 
-                East ->
-                    North
+        ( L _, East ) ->
+            North
 
-                South ->
-                    East
+        ( L _, South ) ->
+            East
 
-                West ->
-                    South
+        ( L _, West ) ->
+            South
 
-        R _ ->
-            case direction of
-                South ->
-                    West
+        ( R _, South ) ->
+            West
 
-                West ->
-                    North
+        ( R _, West ) ->
+            North
 
-                North ->
-                    East
+        ( R _, North ) ->
+            East
 
-                East ->
-                    South
+        ( R _, East ) ->
+            South
 
 
 moveForward : Position -> Direction -> Int -> List Position -> Result
-moveForward position direction steps visited =
-    if steps == 0 then
-        Continue ( position, position :: visited )
-    else
-        let
-            nextPosition =
-                case direction of
-                    North ->
-                        { position | y = position.y + 1 }
+moveForward ( x, y ) direction steps visited =
+    let
+        pos =
+            ( x, y )
+    in
+        if steps == 0 then
+            Continue ( pos, pos :: visited )
+        else
+            let
+                nextPosition =
+                    case direction of
+                        North ->
+                            ( x, y + 1 )
 
-                    East ->
-                        { position | x = position.x + 1 }
+                        East ->
+                            ( x + 1, y )
 
-                    South ->
-                        { position | y = position.y - 1 }
+                        South ->
+                            ( x, y - 1 )
 
-                    West ->
-                        { position | x = position.x - 1 }
+                        West ->
+                            ( x - 1, y )
 
-            nextVisited =
-                position :: visited
-        in
-            if List.member nextPosition nextVisited then
-                Intersection nextPosition
-            else
-                moveForward nextPosition direction (steps - 1) nextVisited
+                nextVisited =
+                    pos :: visited
+            in
+                if List.member nextPosition nextVisited then
+                    Intersection nextPosition
+                else
+                    moveForward nextPosition direction (steps - 1) nextVisited
 
 
 type Result
     = Intersection Position
     | Continue ( Position, List Position )
-
-
-startPosition : Position
-startPosition =
-    { x = 0
-    , y = 0
-    }
-
-
-main : Html msg
-main =
-    div []
-        [ div [] [ text ("Input: " ++ rawInput) ]
-        , div [] [ text ("Result: " ++ (solve startPosition North [] parsedInput |> toString)) ]
-        ]

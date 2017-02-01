@@ -1,6 +1,7 @@
 module Day3.Part2 exposing (main)
 
 import Html exposing (..)
+import Tuple exposing (second)
 import Day3.Input exposing (rawInput, parsedInput)
 
 
@@ -12,11 +13,8 @@ partitionValues list =
 
         ( ones, twos ) =
             List.partition (\( i, _ ) -> i == 1) onesAndTwos
-
-        ( _, result ) =
-            List.unzip <| zeros ++ ones ++ twos
     in
-        result
+        second <| List.unzip <| zeros ++ ones ++ twos
 
 
 checkValid : Int -> List Int -> Int

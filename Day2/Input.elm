@@ -10,42 +10,9 @@ DRRLLRRLULDDULRDDLRLDRURDDUDULURRDLUUULURRRLLRLULURLLRLLDLLUDDLLRDRURRDLDDURRURD
 LDULURUULLUDLDDRLLDURRULRLURLLURLRRLRDLDDRUURULLRUURUURRUDDDLRRLDDLULDURLLRDURDLLLURLDRULLURLRLDRDRULURDULDLLDUULLLDUDULDURLUDRULRUUUUUUDUUDDDLLURDLDLRLRDLULRDRULUUDRLULLURLRLDURDRRDUDDDURLLUUDRRURUDLDUDRLRLDRLLLLDLLLURRUDDURLDDRULLRRRRDUULDLUDLDRDUUURLDLLLDLRLRRLDDULLRURRRULDLURLURRRRULUURLLUULRURDURURLRRDULLDULLUDURDUDRLUULULDRRDLLDRDRRULLLDDDRDUDLRDLRDDURRLDUDLLRUDRRRUDRURURRRRDRDDRULRRLLDDRRRLDLULRLRRRUDUDULRDLUDRULRRRRLUULRULRLLRLLURDLUURDULRLDLRLURDUURUULUUDRLLUDRULULULLLLRLDLLLDDDLUULUDLLLDDULRDRULURDLLRRDRLUDRD"""
 
 
-parse : String -> List (List Direction)
-parse string =
-    List.map parseLine (String.split "\n" string)
-
-
-parseLine : String -> List Direction
-parseLine =
-    String.foldr parseChar []
-
-
-parseChar : Char -> List Direction -> List Direction
-parseChar char list =
-    let
-        direction =
-            case char of
-                'U' ->
-                    Just Up
-
-                'D' ->
-                    Just Down
-
-                'L' ->
-                    Just Left
-
-                'R' ->
-                    Just Right
-
-                _ ->
-                    Nothing
-    in
-        case direction of
-            Just dir ->
-                dir :: list
-
-            Nothing ->
-                list
+parsedInput : List (List Direction)
+parsedInput =
+    parse rawInput
 
 
 type Direction
@@ -55,6 +22,30 @@ type Direction
     | Right
 
 
-parsedInput : List (List Direction)
-parsedInput =
-    parse rawInput
+parse : String -> List (List Direction)
+parse =
+    List.map parseLine << String.split "\n"
+
+
+parseLine : String -> List Direction
+parseLine =
+    String.foldr parseChar []
+
+
+parseChar : Char -> List Direction -> List Direction
+parseChar char =
+    case char of
+        'U' ->
+            (::) Up
+
+        'D' ->
+            (::) Down
+
+        'L' ->
+            (::) Left
+
+        'R' ->
+            (::) Right
+
+        _ ->
+            identity

@@ -83,13 +83,13 @@ partOneComparison =
 
 
 insertInputs : ( Inputs, Instructions ) -> ( Outputs, Bots, Maybe Int ) -> ( Outputs, Bots, Maybe Int )
-insertInputs ( inputs, instructions ) values =
+insertInputs ( inputs, instructions ) =
     case inputs of
         [] ->
-            values
+            identity
 
         x :: xs ->
-            insertInputs ( xs, instructions ) <| execute x instructions values
+            insertInputs ( xs, instructions ) << execute x instructions
 
 
 solved : ( Maybe Int, Maybe Int )

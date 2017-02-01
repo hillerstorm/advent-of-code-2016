@@ -30,18 +30,17 @@ decrypt room =
 
 
 isStorage : Room -> Bool
-isStorage room =
-    room.name == "northpole object storage"
+isStorage { name } =
+    name == "northpole object storage"
 
 
 solve : List Room -> Maybe Int
-solve rooms =
-    rooms
-        |> List.filter validRoom
-        |> List.map decrypt
-        |> List.filter isStorage
-        |> List.head
-        |> Maybe.andThen (\r -> Just r.sector)
+solve =
+    List.filter validRoom
+        >> List.map decrypt
+        >> List.filter isStorage
+        >> List.head
+        >> Maybe.map .sector
 
 
 main : Html msg

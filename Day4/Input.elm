@@ -1008,35 +1008,21 @@ type alias Room =
 parseRoom : String -> Maybe Room
 parseRoom line =
     let
-        checksum =
-            String.slice -6 -1 line
-
         sector =
             String.filter isDigit line
 
         sectorLength =
             String.length sector
-
-        name =
-            line
-                |> String.dropRight (sectorLength + 8)
-
-        parsedSector =
-            String.toInt sector
     in
-        case parsedSector of
-            Ok s ->
-                let
-                    result =
-                        { name = name
-                        , sector = s
-                        , checksum = checksum
-                        }
-                in
-                    Just result
-
-            Err _ ->
-                Nothing
+        String.toInt sector
+            |> Result.toMaybe
+            |> Maybe.map
+                (\s ->
+                    { name = String.dropRight (sectorLength + 8) <| line
+                    , sector = s
+                    , checksum = String.slice -6 -1 line
+                    }
+                )
 
 
 parsedInput : List Room

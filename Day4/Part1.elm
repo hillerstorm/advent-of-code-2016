@@ -31,15 +31,12 @@ compareChars name a b =
 
         bCount =
             count b name
-
-        diff =
-            compare bCount aCount
     in
-        case diff of
+        case compare bCount aCount of
             EQ ->
                 compare a b
 
-            _ ->
+            diff ->
                 diff
 
 
