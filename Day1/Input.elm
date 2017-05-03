@@ -37,5 +37,5 @@ parseMove move =
 parseSteps : String -> (Int -> Move) -> List Move -> List Move
 parseSteps steps f list =
     String.toInt steps
-        |> Result.andThen (\x -> Ok <| list ++ [ (f x) ])
+        |> Result.map (\x -> list ++ [ (f x) ])
         |> Result.withDefault list
