@@ -1,4 +1,4 @@
-module Day1.Input exposing (rawInput, Move(..), parsedInput)
+module Day1.Input exposing (Move(..), parsedInput)
 
 
 rawInput : String
