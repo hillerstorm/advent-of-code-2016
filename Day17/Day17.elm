@@ -1,6 +1,6 @@
 module Day17.Day17 exposing (main)
 
-import Html exposing (..)
+import Html exposing (Html, div, text)
 import MD5
 
 
@@ -36,12 +36,22 @@ goal =
     ( 3, 3 )
 
 
+noAnswerDefault : Maybe String -> String
+noAnswerDefault =
+    Maybe.withDefault "No answer"
+
+
+print : Maybe Int -> String
+print =
+    Maybe.map String.fromInt >> noAnswerDefault
+
+
 main : Html msg
 main =
     div []
         [ div [] [ text ("Input: " ++ input) ]
-        , div [] [ text ("Part 1: " ++ (toString <| solve Shortest Nothing [ ( start, [] ) ])) ]
-        , div [] [ text ("Part 2: " ++ (toString <| Maybe.map String.length <| solve Longest Nothing [ ( start, [] ) ])) ]
+        , div [] [ text ("Part 1: " ++ (noAnswerDefault <| solve Shortest Nothing [ ( start, [] ) ])) ]
+        , div [] [ text ("Part 2: " ++ (print <| Maybe.map String.length <| solve Longest Nothing [ ( start, [] ) ])) ]
         ]
 
 
@@ -69,6 +79,7 @@ findPath : Part -> Maybe String -> Path -> List Path -> Maybe String
 findPath part result (( ( code, ( x, y ) as position ) as current, rest ) as path) xs =
     if position == goal then
         withGoal part result xs <| extractPath path
+
     else
         case hex code of
             [ up, down, left, right ] ->
@@ -83,19 +94,19 @@ findPath part result (( ( code, ( x, y ) as position ) as current, rest ) as pat
                             ]
                             []
                 in
-                    case nb of
-                        [] ->
-                            solve part result xs
+                case nb of
+                    [] ->
+                        solve part result xs
 
-                        _ ->
-                            let
-                                newRest =
-                                    current :: rest
+                    _ ->
+                        let
+                            newRest =
+                                current :: rest
 
-                                newPaths =
-                                    xs ++ (List.map (\x -> ( x, newRest )) nb)
-                            in
-                                solve part result <| List.sortWith (sortByCode part) newPaths
+                            newPaths =
+                                xs ++ List.map (\a -> ( a, newRest )) nb
+                        in
+                        solve part result <| List.sortWith (sortByCode part) newPaths
 
             _ ->
                 result
@@ -117,15 +128,16 @@ withGoal part result xs path =
                         Just res ->
                             if String.length path > String.length res then
                                 path
+
                             else
                                 res
             in
-                solve part (Just newResult) xs
+            solve part (Just newResult) xs
 
 
 hex : String -> List Char
 hex =
-    String.toList << String.left 4 << MD5.hex
+    MD5.hex >> String.left 4 >> String.toList
 
 
 sortByCode : Part -> Path -> Path -> Order
@@ -145,7 +157,7 @@ sortByCode part a b =
                 Longest ->
                     flippedCompare
     in
-        compareCodes aLen bLen
+    compareCodes aLen bLen
 
 
 flippedCompare : comparable -> comparable -> Order
@@ -163,7 +175,7 @@ flippedCompare a b =
 
 codeLength : Path -> Int
 codeLength =
-    String.length << Tuple.first << Tuple.first
+    Tuple.first >> Tuple.first >> String.length
 
 
 neighbors : String -> List ( Bool, Position ) -> List Position -> List Position
@@ -175,12 +187,13 @@ neighbors code positions result =
         ( wall, ( direction, ( x, y ) ) ) :: xs ->
             if wall || x < 0 || y < 0 || x > 3 || y > 3 then
                 neighbors code xs result
+
             else
                 let
                     newCode =
                         code ++ direction
                 in
-                    neighbors code xs <| result ++ [ ( newCode, ( x, y ) ) ]
+                neighbors code xs <| result ++ [ ( newCode, ( x, y ) ) ]
 
 
 wallChars : List Char

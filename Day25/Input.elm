@@ -1,4 +1,4 @@
-module Day25.Input exposing (rawInput, parsedInput, Instruction(..), Value(..), Register(..))
+module Day25.Input exposing (Instruction(..), Register(..), Value(..), parsedInput, rawInput)
 
 
 rawInput : String
@@ -66,44 +66,19 @@ parse : String -> Maybe Instruction
 parse line =
     case String.words line of
         [ "cpy", val, reg ] ->
-            case ( parseValue val, parseRegister reg ) of
-                ( Just value, Just register ) ->
-                    Just <| Cpy value register
-
-                _ ->
-                    Nothing
+            Maybe.map2 Cpy (parseValue val) (parseRegister reg)
 
         [ "inc", reg ] ->
-            case parseRegister reg of
-                Just register ->
-                    Just <| Inc register
-
-                Nothing ->
-                    Nothing
+            Maybe.map Inc (parseRegister reg)
 
         [ "dec", reg ] ->
-            case parseRegister reg of
-                Just register ->
-                    Just <| Dec register
-
-                Nothing ->
-                    Nothing
+            Maybe.map Dec (parseRegister reg)
 
         [ "jnz", val, step ] ->
-            case ( parseValue val, parseValue step ) of
-                ( Just value, Just steps ) ->
-                    Just <| Jnz value steps
-
-                _ ->
-                    Nothing
+            Maybe.map2 Jnz (parseValue val) (parseValue step)
 
         [ "out", reg ] ->
-            case parseValue reg of
-                Just value ->
-                    Just <| Out value
-
-                Nothing ->
-                    Nothing
+            Maybe.map Out (parseValue reg)
 
         _ ->
             Nothing
@@ -111,15 +86,12 @@ parse line =
 
 parseValue : String -> Maybe Value
 parseValue str =
-    case ( parseRegister str, String.toInt str ) of
-        ( Just register, _ ) ->
+    case parseRegister str of
+        Just register ->
             Just <| Reg register
 
-        ( _, Ok value ) ->
-            Just <| Num value
-
-        _ ->
-            Nothing
+        Nothing ->
+            Maybe.map Num (String.toInt str)
 
 
 parseRegister : String -> Maybe Register

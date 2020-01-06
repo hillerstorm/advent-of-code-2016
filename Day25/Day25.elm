@@ -1,15 +1,15 @@
 module Day25.Day25 exposing (main)
 
-import Array exposing (..)
-import Html exposing (..)
+import Array exposing (Array)
 import Day25.Input exposing (Instruction(..), Register(..), Value(..), parsedInput, rawInput)
+import Html exposing (Html, div, text)
 
 
 main : Html msg
 main =
     div []
         [ div [] [ text ("Input: " ++ rawInput) ]
-        , div [] [ text ("Part 1: " ++ (toString <| findAnswer 0)) ]
+        , div [] [ text ("Part 1: " ++ (String.fromInt <| findAnswer 0)) ]
         ]
 
 
@@ -28,7 +28,7 @@ optimize instructions =
         indexed =
             Array.toIndexedList firstPass
     in
-        findMulPattern indexed firstPass
+    findMulPattern indexed firstPass
 
 
 findIncByPattern : List ( Int, Instruction ) -> Array Instruction -> Array Instruction
@@ -39,20 +39,25 @@ findIncByPattern indexed =
                 nextIndexed =
                     b :: c :: xs
             in
-                case ( a, Tuple.second b, Tuple.second c ) of
-                    ( Inc x, Dec y, Jnz z (Num -2) ) ->
+            case ( a, Tuple.second b, Tuple.second c ) of
+                ( Inc x, Dec y, Jnz z (Num num) ) ->
+                    if num == -2 then
                         case z of
                             Reg r ->
                                 if y == r then
-                                    findIncByPattern nextIndexed << Array.set i (IncBy x y)
+                                    Array.set i (IncBy x y) >> findIncByPattern nextIndexed
+
                                 else
                                     findIncByPattern nextIndexed
 
                             Num _ ->
                                 findIncByPattern nextIndexed
 
-                    _ ->
+                    else
                         findIncByPattern nextIndexed
+
+                _ ->
+                    findIncByPattern nextIndexed
 
         _ ->
             identity
@@ -66,43 +71,55 @@ findMulPattern indexed =
                 nextIndexed =
                     b :: c :: d :: e :: f :: xs
             in
-                case ( a, Tuple.second b, Tuple.second e, Tuple.second f ) of
-                    ( Cpy x y, IncBy z j, Dec k, Jnz l (Num -5) ) ->
+            case [ a, Tuple.second b, Tuple.second e, Tuple.second f ] of
+                [ Cpy x y, IncBy z j, Dec k, Jnz l (Num num) ] ->
+                    if num == -5 then
                         case l of
                             Reg r ->
                                 if y == j && k == r then
-                                    findMulPattern nextIndexed << Array.set i (Mul z k x j)
+                                    Array.set i (Mul z k x j) >> findMulPattern nextIndexed
+
                                 else
                                     findMulPattern nextIndexed
 
                             Num _ ->
                                 findMulPattern nextIndexed
 
-                    _ ->
+                    else
                         findMulPattern nextIndexed
+
+                _ ->
+                    findMulPattern nextIndexed
 
         _ ->
             identity
 
 
+initialRegisters : Int -> Registers
+initialRegisters a =
+    { a = a
+    , b = 0
+    , c = 0
+    , d = 0
+    , out = ""
+    }
+
+
 findAnswer : Int -> Int
 findAnswer a =
-    solve a 0 optimizedInitialInstructions ( a, 0, 0, 0, "" )
+    solve a 0 optimizedInitialInstructions <| initialRegisters a
 
 
 solve : Int -> Int -> Array Instruction -> Registers -> Int
 solve initialA index optimized registers =
     if index == -1 then
-        let
-            ( _, _, _, _, out ) =
-                registers
-        in
-            case out of
-                "010101010101" ->
-                    initialA
+        case registers.out of
+            "010101010101" ->
+                initialA
 
-                _ ->
-                    findAnswer <| initialA + 1
+            _ ->
+                findAnswer <| initialA + 1
+
     else
         case Array.get index optimized of
             Just (Cpy value register) ->
@@ -138,7 +155,7 @@ solve initialA index optimized registers =
                     newIndex =
                         index + jump value steps registers
                 in
-                    solve initialA newIndex optimized registers
+                solve initialA newIndex optimized registers
 
             Just (Out value) ->
                 registers
@@ -150,7 +167,12 @@ solve initialA index optimized registers =
 
 
 type alias Registers =
-    ( Int, Int, Int, Int, String )
+    { a : Int
+    , b : Int
+    , c : Int
+    , d : Int
+    , out : String
+    }
 
 
 increment : Value -> Register -> Registers -> Registers
@@ -177,7 +199,7 @@ multiply reg val register registers =
         secondVal =
             getValue val registers
     in
-        modify (\x -> x + (firstVal * secondVal)) register registers
+    modify (\x -> x + (firstVal * secondVal)) register registers
 
 
 copyValue : Value -> Register -> Registers -> Registers
@@ -191,23 +213,31 @@ copyValue value register registers =
                 Reg r ->
                     getRegister r registers
     in
-        modify (always val) register registers
+    modify (always val) register registers
 
 
 modify : (Int -> Int) -> Register -> Registers -> Registers
-modify f register ( a, b, c, d, xs ) =
+modify f register registers =
     case register of
         A ->
-            ( f a, b, c, d, xs )
+            { registers
+                | a = f registers.a
+            }
 
         B ->
-            ( a, f b, c, d, xs )
+            { registers
+                | b = f registers.b
+            }
 
         C ->
-            ( a, b, f c, d, xs )
+            { registers
+                | c = f registers.c
+            }
 
         D ->
-            ( a, b, c, f d, xs )
+            { registers
+                | d = f registers.d
+            }
 
 
 jump : Value -> Value -> Registers -> Int
@@ -216,22 +246,22 @@ jump value steps registers =
         val =
             getValue value registers
     in
-        if val == 0 then
-            1
-        else
-            getValue steps registers
+    if val == 0 then
+        1
+
+    else
+        getValue steps registers
 
 
 out : Value -> Registers -> Registers
 out value registers =
     let
         val =
-            toString <| getValue value registers
-
-        ( a, b, c, d, xs ) =
-            registers
+            String.fromInt <| getValue value registers
     in
-        ( a, b, c, d, xs ++ val )
+    { registers
+        | out = registers.out ++ val
+    }
 
 
 getValue : Value -> Registers -> Int
@@ -245,20 +275,16 @@ getValue value =
 
 
 getRegister : Register -> Registers -> Int
-getRegister register registers =
-    let
-        ( a, b, c, d, _ ) =
-            registers
-    in
-        case register of
-            A ->
-                a
+getRegister register =
+    case register of
+        A ->
+            .a
 
-            B ->
-                b
+        B ->
+            .b
 
-            C ->
-                c
+        C ->
+            .c
 
-            D ->
-                d
+        D ->
+            .d

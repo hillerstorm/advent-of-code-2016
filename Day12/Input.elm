@@ -1,4 +1,4 @@
-module Day12.Input exposing (rawInput, parsedInput, Instruction(..), Value(..), Register(..))
+module Day12.Input exposing (Instruction(..), Register(..), Value(..), parsedInput, rawInput)
 
 
 rawInput : String
@@ -30,7 +30,8 @@ jnz c -5"""
 
 parsedInput : List Instruction
 parsedInput =
-    List.filterMap parse <| String.lines rawInput
+    String.lines rawInput
+        |> List.filterMap parse
 
 
 type Instruction
@@ -56,36 +57,16 @@ parse : String -> Maybe Instruction
 parse line =
     case String.words line of
         [ "cpy", val, reg ] ->
-            case ( parseValue val, parseRegister reg ) of
-                ( Just value, Just register ) ->
-                    Just (Cpy value register)
-
-                _ ->
-                    Nothing
+            Maybe.map2 Cpy (parseValue val) (parseRegister reg)
 
         [ "inc", reg ] ->
-            case parseRegister reg of
-                Just register ->
-                    Just (Inc register)
-
-                _ ->
-                    Nothing
+            Maybe.map Inc (parseRegister reg)
 
         [ "dec", reg ] ->
-            case parseRegister reg of
-                Just register ->
-                    Just (Dec register)
-
-                _ ->
-                    Nothing
+            Maybe.map Dec (parseRegister reg)
 
         [ "jnz", val, step ] ->
-            case ( parseValue val, String.toInt step ) of
-                ( Just value, Ok steps ) ->
-                    Just (Jnz value steps)
-
-                _ ->
-                    Nothing
+            Maybe.map2 Jnz (parseValue val) (String.toInt step)
 
         _ ->
             Nothing
@@ -98,12 +79,7 @@ parseValue str =
             Just (Reg register)
 
         Nothing ->
-            case String.toInt str of
-                Ok value ->
-                    Just (Num value)
-
-                _ ->
-                    Nothing
+            Maybe.map Num (String.toInt str)
 
 
 parseRegister : String -> Maybe Register

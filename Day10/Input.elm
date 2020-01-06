@@ -1,6 +1,6 @@
-module Day10.Input exposing (rawInput, parsedInput, Out(..))
+module Day10.Input exposing (Out(..), parsedInput, rawInput)
 
-import Dict exposing (..)
+import Dict exposing (Dict)
 
 
 rawInput : String
@@ -252,12 +252,7 @@ filterInputs : List String -> Maybe ( Int, Int )
 filterInputs line =
     case line of
         [ "value", x, "goes", "to", "bot", y ] ->
-            case ( String.toInt x, String.toInt y ) of
-                ( Ok value, Ok bot ) ->
-                    Just ( bot, value )
-
-                _ ->
-                    Nothing
+            Maybe.map2 Tuple.pair (String.toInt y) (String.toInt x)
 
         _ ->
             Nothing
@@ -265,7 +260,8 @@ filterInputs line =
 
 instructions : Dict Int ( Out, Out )
 instructions =
-    Dict.fromList <| List.filterMap filterInstructions lines
+    List.filterMap filterInstructions lines
+        |> Dict.fromList
 
 
 type Out
@@ -276,29 +272,29 @@ type Out
 filterInstructions : List String -> Maybe ( Int, ( Out, Out ) )
 filterInstructions line =
     case line of
-        [ "bot", x, "gives", "low", "to", outLow, y, "and", "high", "to", outHigh, z ] ->
-            case ( String.toInt x, String.toInt y, String.toInt z ) of
-                ( Ok bot, Ok lowValue, Ok highValue ) ->
-                    let
-                        low =
-                            if outLow == "bot" then
-                                Bot lowValue
-                            else
-                                Output lowValue
+        [ "bot", x, "gives", "low", "to", "bot", y, "and", "high", "to", "bot", z ] ->
+            mapInstruction Bot Bot x y z
 
-                        high =
-                            if outHigh == "bot" then
-                                Bot highValue
-                            else
-                                Output highValue
-                    in
-                        Just ( bot, ( low, high ) )
+        [ "bot", x, "gives", "low", "to", "bot", y, "and", "high", "to", "output", z ] ->
+            mapInstruction Bot Output x y z
 
-                _ ->
-                    Nothing
+        [ "bot", x, "gives", "low", "to", "output", y, "and", "high", "to", "bot", z ] ->
+            mapInstruction Output Bot x y z
+
+        [ "bot", x, "gives", "low", "to", "output", y, "and", "high", "to", "output", z ] ->
+            mapInstruction Output Output x y z
 
         _ ->
             Nothing
+
+
+mapInstruction : (Int -> Out) -> (Int -> Out) -> String -> String -> String -> Maybe ( Int, ( Out, Out ) )
+mapInstruction lowFn highFn x lowTarget highTarget =
+    Maybe.map3
+        (\bot low high -> ( bot, ( lowFn low, highFn high ) ))
+        (String.toInt x)
+        (String.toInt lowTarget)
+        (String.toInt highTarget)
 
 
 parsedInput : ( List ( Int, Int ), Dict Int ( Out, Out ) )

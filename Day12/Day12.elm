@@ -1,39 +1,23 @@
 module Day12.Day12 exposing (main)
 
-import Html exposing (..)
-import Array exposing (..)
-import Day12.Input exposing (rawInput, parsedInput, Instruction(..), Value(..), Register(..))
+import Array exposing (Array)
+import Day12.Input exposing (Instruction(..), Register(..), Value(..), parsedInput, rawInput)
+import Html exposing (Html, div, text)
 
 
 copyValue : Value -> Registers -> Register -> Registers
 copyValue value registers =
     modify
-        (\_ ->
-            let
-                ( a, b, c, d ) =
-                    registers
-            in
-                case value of
-                    Num n ->
-                        n
-
-                    Reg A ->
-                        a
-
-                    Reg B ->
-                        b
-
-                    Reg C ->
-                        c
-
-                    Reg D ->
-                        d
-        )
+        (\_ -> getValue value registers)
         registers
 
 
 type alias Registers =
-    ( Int, Int, Int, Int )
+    { a : Int
+    , b : Int
+    , c : Int
+    , d : Int
+    }
 
 
 increment : Registers -> Register -> Registers
@@ -47,61 +31,66 @@ decrement =
 
 
 modify : (Int -> Int) -> Registers -> Register -> Registers
-modify f ( a, b, c, d ) register =
+modify f registers register =
     case register of
         A ->
-            ( f a, b, c, d )
+            { registers
+                | a = f registers.a
+            }
 
         B ->
-            ( a, f b, c, d )
+            { registers
+                | b = f registers.b
+            }
 
         C ->
-            ( a, b, f c, d )
+            { registers
+                | c = f registers.c
+            }
 
         D ->
-            ( a, b, c, f d )
+            { registers
+                | d = f registers.d
+            }
+
+
+getValue : Value -> Registers -> Int
+getValue value registers =
+    case value of
+        Num n ->
+            n
+
+        Reg A ->
+            registers.a
+
+        Reg B ->
+            registers.b
+
+        Reg C ->
+            registers.c
+
+        Reg D ->
+            registers.d
 
 
 jump : Registers -> Value -> Int -> Int -> Int
 jump registers value steps index =
     let
         val =
-            case value of
-                Num x ->
-                    x
-
-                Reg r ->
-                    let
-                        ( a, b, c, d ) =
-                            registers
-                    in
-                        case r of
-                            A ->
-                                a
-
-                            B ->
-                                b
-
-                            C ->
-                                c
-
-                            D ->
-                                d
+            getValue value registers
     in
-        if val == 0 then
-            1
-        else
-            steps
+    if val == 0 then
+        1
+
+    else
+        steps
 
 
 solve : Registers -> Int -> Array Instruction -> Int
 solve registers index instructions =
     if index == -1 then
-        let
-            ( a, _, _, _ ) =
-                registers
-        in
-            a
+        registers.a
+
     else
         let
             ( newRegisters, newIndex ) =
@@ -121,13 +110,31 @@ solve registers index instructions =
                     Nothing ->
                         ( registers, -1 )
         in
-            solve newRegisters newIndex instructions
+        solve newRegisters newIndex instructions
+
+
+initialPart1 : Registers
+initialPart1 =
+    { a = 0
+    , b = 0
+    , c = 0
+    , d = 0
+    }
+
+
+initialPart2 : Registers
+initialPart2 =
+    { a = 0
+    , b = 0
+    , c = 1
+    , d = 0
+    }
 
 
 main : Html msg
 main =
     div []
         [ div [] [ text ("Input: " ++ rawInput) ]
-        , div [] [ text ("Part 1: " ++ (toString <| solve ( 0, 0, 0, 0 ) 0 <| Array.fromList parsedInput)) ]
-        , div [] [ text ("Part 2: " ++ (toString <| solve ( 0, 0, 1, 0 ) 0 <| Array.fromList parsedInput)) ]
+        , div [] [ text ("Part 1: " ++ (String.fromInt <| solve initialPart1 0 <| Array.fromList parsedInput)) ]
+        , div [] [ text ("Part 2: " ++ (String.fromInt <| solve initialPart2 0 <| Array.fromList parsedInput)) ]
         ]

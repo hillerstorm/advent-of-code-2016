@@ -1,9 +1,9 @@
 module Day13.Day13 exposing (main)
 
-import Html exposing (..)
-import Set exposing (..)
+import AStar exposing (Position, findPath, straightLineCost)
+import Html exposing (Html, div, text)
 import ParseInt exposing (toRadix)
-import AStar exposing (..)
+import Set exposing (Set)
 
 
 input : Int
@@ -11,19 +11,24 @@ input =
     1350
 
 
+print : Maybe Int -> String
+print =
+    Maybe.map String.fromInt >> Maybe.withDefault "No answer"
+
+
 main : Html msg
 main =
     div []
-        [ div [] [ text ("Input: " ++ (toString input)) ]
-        , div [] [ text ("Part 1: " ++ (toString <| steps ( 31, 39 ))) ]
-        , div [] [ text ("Part 2: " ++ (toString <| part2 positions 0)) ]
+        [ div [] [ text ("Input: " ++ String.fromInt input) ]
+        , div [] [ text ("Part 1: " ++ (print <| steps ( 31, 39 ))) ]
+        , div [] [ text ("Part 2: " ++ (String.fromInt <| part2 intialPositions 0)) ]
         ]
 
 
-positions : List Position
-positions =
+intialPositions : List Position
+intialPositions =
     List.range 0 20
-        |> List.concatMap (List.map2 (,) (List.range 0 20) << List.repeat 20)
+        |> List.concatMap (List.map2 Tuple.pair (List.range 0 20) << List.repeat 20)
         |> List.filter (not << isWall)
 
 
@@ -41,13 +46,15 @@ part2 positions visited =
                 Just s ->
                     if s <= 50 then
                         part2 xs <| visited + 1
+
                     else
                         part2 xs visited
 
 
 steps : Position -> Maybe Int
 steps =
-    Maybe.map List.length << findPath straightLineCost availableMoves ( 1, 1 )
+    findPath straightLineCost availableMoves ( 1, 1 )
+        >> Maybe.map List.length
 
 
 availableMoves : Position -> Set Position
@@ -70,6 +77,7 @@ neighbors positions result =
         ( x, y ) :: xs ->
             if x < 0 || y < 0 || isWall ( x, y ) then
                 neighbors xs result
+
             else
                 neighbors xs <| Set.insert ( x, y ) result
 
@@ -83,9 +91,9 @@ isWall ( x, y ) =
 
 isOdd : String -> Result x Bool
 isOdd str =
-    Ok ((countOnes str) % 2 /= 0)
+    Ok (modBy 2 (countOnes str) /= 0)
 
 
 countOnes : String -> Int
 countOnes =
-    String.length << String.filter ((==) '1')
+    String.filter ((==) '1') >> String.length

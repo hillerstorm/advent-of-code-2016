@@ -1,9 +1,8 @@
 module Day14.Day14 exposing (main)
 
-import Html exposing (..)
-import Regex
-import String
+import Html exposing (Html, div, text)
 import MD5
+import Regex
 
 
 main : Html msg
@@ -22,28 +21,34 @@ input =
 
 partOne : String
 partOne =
-    toString <| find (baseHashes 1) [] 1 1001
+    find (baseHashes 1) [] 1 1001
+        |> Maybe.map String.fromInt
+        |> Maybe.withDefault "No answer"
 
 
 partTwo : String
 partTwo =
-    toString <| find (baseHashes 2017) [] 2017 1001
+    find (baseHashes 2017) [] 2017 1001
+        |> Maybe.map String.fromInt
+        |> Maybe.withDefault "No answer"
 
 
 baseHashes : Int -> List ( Int, String )
 baseHashes hashCount =
-    List.map (mapIndex hashCount) <| List.range 0 1000
+    List.range 0 1000
+        |> List.map (mapIndex hashCount)
 
 
 mapIndex : Int -> Int -> ( Int, String )
 mapIndex hashCount x =
-    ( x, getHash hashCount <| input ++ (toString x) )
+    ( x, getHash hashCount <| input ++ String.fromInt x )
 
 
 getHash : Int -> String -> String
 getHash hashCount x =
     if hashCount > 0 then
         getHash (hashCount - 1) <| MD5.hex x
+
     else
         x
 
@@ -52,6 +57,7 @@ find : List ( Int, String ) -> List Int -> Int -> Int -> Maybe Int
 find hashes result hashCount index =
     if List.length result == 64 then
         List.head result
+
     else
         case hashes of
             [] ->
@@ -60,14 +66,14 @@ find hashes result hashCount index =
             ( idx, hash ) :: xs ->
                 let
                     nextHashes =
-                        List.append xs [ mapIndex hashCount index ]
+                        xs ++ [ mapIndex hashCount index ]
 
                     newResult =
                         findThree hash
                             |> Maybe.map (mapFive idx result xs)
                             |> Maybe.withDefault result
                 in
-                    find nextHashes newResult hashCount <| index + 1
+                find nextHashes newResult hashCount <| index + 1
 
 
 mapFive : Int -> List Int -> List ( Int, String ) -> String -> List Int
@@ -76,20 +82,22 @@ mapFive idx result hashes char =
         match =
             String.repeat 5 char
     in
-        if List.any (String.contains match << Tuple.second) hashes then
-            idx :: result
-        else
-            result
+    if List.any (Tuple.second >> String.contains match) hashes then
+        idx :: result
+
+    else
+        result
 
 
 three : Regex.Regex
 three =
-    Regex.regex "(.)\\1\\1"
+    Regex.fromString "(.)\\1\\1"
+        |> Maybe.withDefault Regex.never
 
 
 findThree : String -> Maybe String
-findThree str =
-    Regex.find (Regex.AtMost 1) three str
-        |> List.head
-        |> Maybe.map (List.head << List.filterMap identity << .submatches)
-        |> Maybe.withDefault Nothing
+findThree =
+    Regex.findAtMost 1 three
+        >> List.head
+        >> Maybe.map (.submatches >> List.filterMap identity >> List.head)
+        >> Maybe.withDefault Nothing

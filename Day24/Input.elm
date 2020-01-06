@@ -1,6 +1,6 @@
-module Day24.Input exposing (rawInput, parsedInput, Grid, NumberCell, Position)
+module Day24.Input exposing (Grid, NumberCell, Position, parsedInput, rawInput)
 
-import Set exposing (..)
+import Set exposing (Set)
 
 
 rawInput : String
@@ -59,12 +59,13 @@ parsedInput : Grid
 parsedInput =
     let
         ( numbers, walls ) =
-            parseLines 0 [] Set.empty <| String.lines rawInput
+            String.lines rawInput
+                |> parseLines 0 [] Set.empty
 
         sortedNumbers =
             List.sortBy Tuple.second numbers
     in
-        Grid sortedNumbers walls
+    Grid sortedNumbers walls
 
 
 type alias Grid =
@@ -90,12 +91,12 @@ parseLines row numbers walls lines =
         x :: xs ->
             let
                 chars =
-                    List.indexedMap (,) <| String.toList x
+                    List.indexedMap Tuple.pair <| String.toList x
 
                 ( newNumbers, newWalls ) =
                     mapChars row chars numbers walls
             in
-                parseLines (row + 1) newNumbers newWalls xs
+            parseLines (row + 1) newNumbers newWalls xs
 
 
 mapChars : Int -> List ( Int, Char ) -> List NumberCell -> Set Position -> ( List NumberCell, Set Position )
@@ -107,12 +108,13 @@ mapChars row cells numbers walls =
         ( col, chr ) :: xs ->
             case chr of
                 '#' ->
-                    mapChars row xs numbers <| Set.insert ( col, row ) walls
+                    Set.insert ( col, row ) walls
+                        |> mapChars row xs numbers
 
                 x ->
                     case String.toInt <| String.fromChar x of
-                        Ok i ->
+                        Just i ->
                             mapChars row xs (( ( col, row ), i ) :: numbers) walls
 
-                        _ ->
+                        Nothing ->
                             mapChars row xs numbers walls

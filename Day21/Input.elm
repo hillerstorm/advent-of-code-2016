@@ -1,4 +1,4 @@
-module Day21.Input exposing (rawInput, parsedInput, Instruction(..), Direction(..))
+module Day21.Input exposing (Direction(..), Instruction(..), parsedInput, rawInput)
 
 
 rawInput : String
@@ -114,7 +114,7 @@ type Instruction
     = SwapPos Int Int
     | SwapLetter String String
     | Rotate Direction Int
-    | RotateFrom Direction String
+    | RotateFrom String
     | Reverse Int Int
     | Move Int Int
 
@@ -126,52 +126,32 @@ type Direction
 
 parse : String -> List Instruction
 parse =
-    List.filterMap parseLine << String.lines
+    String.lines >> List.filterMap parseLine
 
 
 parseLine : String -> Maybe Instruction
 parseLine line =
     case String.words line of
-        [ "swap", "position", x_, "with", "position", y_ ] ->
-            case ( String.toInt x_, String.toInt y_ ) of
-                ( Ok x, Ok y ) ->
-                    Just <| SwapPos x y
+        [ "swap", "position", x, "with", "position", y ] ->
+            Maybe.map2 SwapPos (String.toInt x) (String.toInt y)
 
-                _ ->
-                    Nothing
+        [ "swap", "letter", a, "with", "letter", b ] ->
+            Just <| SwapLetter a b
 
-        [ "swap", "letter", x, "with", "letter", y ] ->
-            Just <| SwapLetter x y
+        [ "rotate", "left", steps, _ ] ->
+            Maybe.map (Rotate Left) (String.toInt steps)
 
-        [ "rotate", dir, steps_, _ ] ->
-            case ( dir, String.toInt steps_ ) of
-                ( "left", Ok steps ) ->
-                    Just <| Rotate Left steps
+        [ "rotate", "right", steps, _ ] ->
+            Maybe.map (Rotate Right) (String.toInt steps)
 
-                ( "right", Ok steps ) ->
-                    Just <| Rotate Right steps
+        [ "rotate", "based", "on", "position", "of", "letter", a ] ->
+            Just <| RotateFrom a
 
-                _ ->
-                    Nothing
+        [ "reverse", "positions", x, "through", y ] ->
+            Maybe.map2 Reverse (String.toInt x) (String.toInt y)
 
-        [ "rotate", "based", "on", "position", "of", "letter", x ] ->
-            Just <| RotateFrom Right x
-
-        [ "reverse", "positions", x_, "through", y_ ] ->
-            case ( String.toInt x_, String.toInt y_ ) of
-                ( Ok x, Ok y ) ->
-                    Just <| Reverse x y
-
-                _ ->
-                    Nothing
-
-        [ "move", "position", x_, "to", "position", y_ ] ->
-            case ( String.toInt x_, String.toInt y_ ) of
-                ( Ok x, Ok y ) ->
-                    Just <| Move x y
-
-                _ ->
-                    Nothing
+        [ "move", "position", x, "to", "position", y ] ->
+            Maybe.map2 Move (String.toInt x) (String.toInt y)
 
         _ ->
             Nothing

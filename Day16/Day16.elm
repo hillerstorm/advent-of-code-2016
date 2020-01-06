@@ -1,6 +1,6 @@
-module Day15.Day15 exposing (main)
+module Day16.Day16 exposing (main)
 
-import Html exposing (..)
+import Html exposing (Html, div, text)
 
 
 input : String
@@ -20,16 +20,18 @@ main =
 calcChecksum : String -> String -> String
 calcChecksum checksum str =
     if String.length str == 0 then
-        if String.length checksum % 2 == 0 then
+        if modBy 2 (String.length checksum) == 0 then
             calcChecksum "" checksum
+
         else
             checksum
+
     else
         let
             newChecksum =
-                (++) checksum <| checkPair str
+                checksum ++ checkPair str
         in
-            calcChecksum newChecksum <| String.dropLeft 2 str
+        calcChecksum newChecksum <| String.dropLeft 2 str
 
 
 checkPair : String -> String
@@ -38,6 +40,7 @@ checkPair str =
         [ a, b ] ->
             if a == b then
                 "1"
+
             else
                 "0"
 
@@ -49,22 +52,10 @@ dragon : Int -> String -> String
 dragon maxLength str =
     if String.length str >= maxLength then
         String.left maxLength str
+
     else
         let
             rightPart =
-                String.foldl reverseString "" str
+                String.foldl String.cons "" str
         in
-            dragon maxLength <| str ++ "0" ++ rightPart
-
-
-reverseString : Char -> String -> String
-reverseString =
-    (++) << flip
-
-
-flip : Char -> String
-flip chr =
-    if chr == '0' then
-        "1"
-    else
-        "0"
+        dragon maxLength <| str ++ "0" ++ rightPart

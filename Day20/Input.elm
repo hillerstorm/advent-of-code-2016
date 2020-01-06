@@ -1,7 +1,6 @@
-module Day20.Input exposing (rawInput, parsedInput)
+module Day20.Input exposing (parsedInput, rawInput)
 
-import Set exposing (..)
-import String
+import Set exposing (Set)
 
 
 rawInput : String
@@ -960,8 +959,8 @@ parse lines =
             case String.split "-" line of
                 [ left, right ] ->
                     case ( String.toInt left, String.toInt right ) of
-                        ( Ok l, Ok r ) ->
-                            parse xs << Set.insert ( l, r )
+                        ( Just l, Just r ) ->
+                            Set.insert ( l, r ) >> parse xs
 
                         _ ->
                             parse xs
@@ -975,4 +974,5 @@ parse lines =
 
 parsedInput : List ( Int, Int )
 parsedInput =
-    Set.toList <| parse (String.lines rawInput) Set.empty
+    parse (String.lines rawInput) Set.empty
+        |> Set.toList

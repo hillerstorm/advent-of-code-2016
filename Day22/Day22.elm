@@ -1,19 +1,22 @@
-module Day22.Main exposing (main)
+module Day22.Day22 exposing (main)
 
-import Html exposing (..)
-import Day22.Input exposing (rawInput, parsedInput, Node)
+import Day22.Input exposing (Node, parsedInput, rawInput)
+import Html exposing (Html, div, text)
 
 
 main : Html msg
 main =
     div []
-        [ div [] [ text ("Part 1: " ++ (toString part1)) ]
+        [ div []
+            [ text ("Part 1: " ++ String.fromInt part1)
+            ]
         ]
 
 
 part1 : Int
 part1 =
-    List.length <| viable parsedInput []
+    viable parsedInput []
+        |> List.length
 
 
 viable : List Node -> List ( Node, Node ) -> List ( Node, Node )
@@ -23,7 +26,7 @@ viable nodes =
             identity
 
         node :: xs ->
-            viable xs << addViable node xs
+            addViable node xs >> viable xs
 
 
 addViable : Node -> List Node -> List ( Node, Node ) -> List ( Node, Node )
@@ -37,13 +40,15 @@ addViable node nodes list =
                 withFirst =
                     if node.used > 0 && node.used <= x.avail then
                         ( node, x ) :: list
+
                     else
                         list
 
                 withSecond =
                     if x.used > 0 && x.used <= node.avail then
                         ( x, node ) :: withFirst
+
                     else
                         withFirst
             in
-                addViable node xs withSecond
+            addViable node xs withSecond

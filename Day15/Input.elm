@@ -1,4 +1,4 @@
-module Day15.Input exposing (rawInput, parsedInput, Disc)
+module Day15.Input exposing (Disc, parsedInput, rawInput)
 
 
 rawInput : String
@@ -22,19 +22,14 @@ type alias Disc =
 
 parse : String -> List Disc
 parse =
-    List.filterMap parseLine << String.lines
+    String.lines >> List.filterMap parseLine
 
 
 parseLine : String -> Maybe Disc
 parseLine line =
     case String.words line of
         [ "Disc", _, "has", positions, "positions;", "at", "time=0,", "it", "is", "at", "position", start ] ->
-            case ( String.toInt positions, String.toInt <| String.dropRight 1 start ) of
-                ( Ok pos, Ok st ) ->
-                    Just ( pos, st )
-
-                _ ->
-                    Nothing
+            Maybe.map2 Tuple.pair (String.toInt positions) (String.toInt <| String.dropRight 1 start)
 
         _ ->
             Nothing

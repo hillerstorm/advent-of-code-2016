@@ -1,7 +1,7 @@
-module Day19 exposing (main)
+module Day19.Day19 exposing (main)
 
-import Html exposing (..)
-import Bitwise exposing (shiftRightBy, or)
+import Bitwise exposing (or, shiftRightBy)
+import Html exposing (Html, div, text)
 
 
 input : Int
@@ -12,9 +12,9 @@ input =
 main : Html msg
 main =
     div []
-        [ div [] [ text ("Input: " ++ (toString input)) ]
-        , div [] [ text ("Part 1: " ++ (toString <| part1 input)) ]
-        , div [] [ text ("Part 2: " ++ (toString <| part2 input 1)) ]
+        [ div [] [ text ("Input: " ++ String.fromInt input) ]
+        , div [] [ text ("Part 1: " ++ (String.fromInt <| part1 input)) ]
+        , div [] [ text ("Part 2: " ++ (String.fromInt <| part2 input 1)) ]
         ]
 
 
@@ -24,10 +24,11 @@ part1 to =
         from =
             previousPowerByTwo to
     in
-        if from == to then
-            from
-        else
-            (to - from) * 2 + 1
+    if from == to then
+        from
+
+    else
+        (to - from) * 2 + 1
 
 
 previousPowerByTwo : Int -> Int
@@ -41,7 +42,7 @@ previousPowerByTwo x =
                 |> orShift 8
                 |> orShift 16
     in
-        y - (shiftRightBy 1 y)
+    y - shiftRightBy 1 y
 
 
 orShift : Int -> Int -> Int
@@ -53,21 +54,25 @@ part2 : Int -> Int -> Int
 part2 elves max =
     if elves < 3 then
         1
+
     else if elves == max then
         elves
+
     else
         let
             nextMax =
                 max + max * 2
         in
-            if nextMax > elves then
-                let
-                    diff =
-                        elves - max
-                in
-                    if diff < max then
-                        diff
-                    else
-                        diff + diff - max
+        if nextMax > elves then
+            let
+                diff =
+                    elves - max
+            in
+            if diff < max then
+                diff
+
             else
-                part2 elves nextMax
+                diff + diff - max
+
+        else
+            part2 elves nextMax

@@ -1,7 +1,7 @@
-module Day21.Main exposing (main)
+module Day21.Day21 exposing (main)
 
-import Html exposing (..)
-import Day21.Input exposing (rawInput, parsedInput, Instruction(..), Direction(..))
+import Day21.Input exposing (Direction(..), Instruction(..), parsedInput, rawInput)
+import Html exposing (Html, div, text)
 
 
 password : String
@@ -17,9 +17,9 @@ scrambled =
 main : Html msg
 main =
     div []
-        [ div [] [ text ("Input: " ++ (toString rawInput)) ]
-        , div [] [ text ("Part 1: " ++ (toString <| solve One parsedInput password)) ]
-        , div [] [ text ("Part 2: " ++ (toString <| solve Two (List.reverse parsedInput) scrambled)) ]
+        [ div [] [ text ("Input: " ++ rawInput) ]
+        , div [] [ text ("Part 1: " ++ solve One parsedInput password) ]
+        , div [] [ text ("Part 2: " ++ solve Two (List.reverse parsedInput) scrambled) ]
         ]
 
 
@@ -40,8 +40,8 @@ solve part instructions pass =
                 Rotate dir steps ->
                     solve part xs <| rotate pass (realDir part dir) steps
 
-                RotateFrom dir letter ->
-                    solve part xs <| rotateFrom part pass letter <| realDir part dir
+                RotateFrom letter ->
+                    solve part xs <| rotateFrom part pass letter <| realDir part Right
 
                 Reverse x y ->
                     solve part xs <| reverse pass x y
@@ -64,29 +64,30 @@ swapPos pass x y =
         maxIdx =
             max x y
     in
-        String.join ""
-            [ String.left minIdx pass
-            , String.left 1 <| String.dropLeft maxIdx pass
-            , String.slice (minIdx + 1) maxIdx pass
-            , String.left 1 <| String.dropLeft minIdx pass
-            , String.dropLeft (maxIdx + 1) pass
-            ]
+    String.join ""
+        [ String.left minIdx pass
+        , String.left 1 <| String.dropLeft maxIdx pass
+        , String.slice (minIdx + 1) maxIdx pass
+        , String.left 1 <| String.dropLeft minIdx pass
+        , String.dropLeft (maxIdx + 1) pass
+        ]
 
 
 swapLetter : String -> String -> String -> String
 swapLetter x y =
-    replace "#" y << replace y x << replace x "#"
+    replace x "#" >> replace y x >> replace "#" y
 
 
 replace : String -> String -> String -> String
 replace from to =
-    String.join to << String.split from
+    String.split from >> String.join to
 
 
 rotate : String -> Direction -> Int -> String
 rotate pass dir steps =
     if steps < 1 then
         pass
+
     else
         let
             newPass =
@@ -96,16 +97,16 @@ rotate pass dir steps =
                             chr =
                                 String.left 1 pass
                         in
-                            (String.dropLeft 1 pass) ++ chr
+                        String.dropLeft 1 pass ++ chr
 
                     Right ->
                         let
                             chr =
                                 String.right 1 pass
                         in
-                            chr ++ (String.dropRight 1 pass)
+                        chr ++ String.dropRight 1 pass
         in
-            rotate newPass dir <| steps - 1
+        rotate newPass dir <| steps - 1
 
 
 rotateFrom : Part -> String -> String -> Direction -> String
@@ -127,55 +128,58 @@ rotateFromPartOne : String -> Direction -> Int -> String
 rotateFromPartOne pass dir idx =
     let
         half =
-            (String.length pass) // 2
+            String.length pass // 2
 
         steps =
             if idx >= half then
                 idx + 2
+
             else
                 idx + 1
     in
-        rotate pass dir steps
+    rotate pass dir steps
 
 
 rotateFromPartTwo : String -> Direction -> Int -> String
 rotateFromPartTwo pass dir idx =
     if idx == 0 then
-        rotate pass dir <| (String.length pass) + 1
+        rotate pass dir <| String.length pass + 1
+
     else
         let
             half =
-                (String.length pass) // 2
+                String.length pass // 2
 
             steps =
                 if isEven idx then
                     getSteps 2 idx isEven <| half + 2
+
                 else
                     getSteps 1 idx isOdd 1
         in
-            steps
-                |> Maybe.map (rotate pass dir)
-                |> Maybe.withDefault pass
+        steps
+            |> Maybe.map (rotate pass dir)
+            |> Maybe.withDefault pass
 
 
 getSteps : Int -> Int -> (Int -> Bool) -> Int -> Maybe Int
 getSteps low high filterFunc extra =
     List.range low high
         |> List.filter filterFunc
-        |> List.indexedMap (,)
+        |> List.indexedMap Tuple.pair
         |> List.reverse
         |> List.head
-        |> Maybe.map ((+) extra << Tuple.first)
+        |> Maybe.map (Tuple.first >> (+) extra)
 
 
 isEven : Int -> Bool
 isEven i =
-    i % 2 == 0
+    modBy 2 i == 0
 
 
 isOdd : Int -> Bool
 isOdd i =
-    i % 2 /= 0
+    modBy 2 i /= 0
 
 
 reverse : String -> Int -> Int -> String
@@ -196,11 +200,11 @@ move pass ( x, y ) =
                 , String.dropLeft (x + 1) pass
                 ]
     in
-        String.join ""
-            [ String.left y purged
-            , String.slice x (x + 1) pass
-            , String.dropLeft y purged
-            ]
+    String.join ""
+        [ String.left y purged
+        , String.slice x (x + 1) pass
+        , String.dropLeft y purged
+        ]
 
 
 actualMove : Part -> Int -> Int -> ( Int, Int )

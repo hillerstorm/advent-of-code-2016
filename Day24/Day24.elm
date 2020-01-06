@@ -1,18 +1,23 @@
 module Day24.Day24 exposing (main)
 
-import Html exposing (..)
-import Dict exposing (..)
-import Set exposing (..)
 import AStar as AS exposing (findPath, straightLineCost)
-import Day24.Input exposing (parsedInput, rawInput, Grid, NumberCell, Position)
+import Day24.Input exposing (Grid, NumberCell, Position, parsedInput, rawInput)
+import Dict exposing (Dict)
+import Html exposing (Html, div, text)
+import Set exposing (Set)
+
+
+print : Maybe Int -> String
+print =
+    Maybe.map String.fromInt >> Maybe.withDefault "No answer"
 
 
 main : Html msg
 main =
     div []
         [ div [] [ text ("Input: " ++ rawInput) ]
-        , div [] [ text ("Part 1: " ++ (toString <| solve One parsedInput)) ]
-        , div [] [ text ("Part 2: " ++ (toString <| solve Two parsedInput)) ]
+        , div [] [ text ("Part 1: " ++ (print <| solve One parsedInput)) ]
+        , div [] [ text ("Part 2: " ++ (print <| solve Two parsedInput)) ]
         ]
 
 
@@ -27,24 +32,25 @@ solve part grid =
         ( zero, rest ) =
             List.partition isZero grid.numbers
     in
-        case zero of
-            [ x ] ->
-                let
-                    mapFun =
-                        case part of
-                            One ->
-                                (::) x
+    case zero of
+        [ x ] ->
+            let
+                mapFun =
+                    case part of
+                        One ->
+                            (::) x
 
-                            Two ->
-                                (\y -> x :: y ++ [ x ])
+                        Two ->
+                            \y -> x :: y ++ [ x ]
 
-                    combinations =
-                        List.map mapFun <| permutations rest
-                in
-                    findShortest grid.walls combinations Dict.empty Nothing
+                combinations =
+                    permutations rest
+                        |> List.map mapFun
+            in
+            findShortest grid.walls combinations Dict.empty Nothing
 
-            _ ->
-                Nothing
+        _ ->
+            Nothing
 
 
 permutations : List a -> List (List a)
@@ -65,7 +71,7 @@ perms tts is =
                         ( _, zs ) =
                             interleaveX identity xs r
                     in
-                        zs
+                    zs
 
                 interleaveX f yys r =
                     case yys of
@@ -75,30 +81,30 @@ perms tts is =
                         y :: ys ->
                             let
                                 ( us, zs ) =
-                                    interleaveX (f << ((::) y)) ys r
+                                    interleaveX (f << (::) y) ys r
                             in
-                                ( y :: us, f (t :: y :: us) :: zs )
+                            ( y :: us, f (t :: y :: us) :: zs )
             in
-                List.foldr interleave (perms ts (t :: is)) (permutations is)
+            List.foldr interleave (perms ts (t :: is)) (permutations is)
 
 
 findShortest : Set Position -> List (List NumberCell) -> Dict ( Int, Int ) Int -> Maybe Int -> Maybe Int
-findShortest walls cells cache shortest =
+findShortest walls cells cache =
     case cells of
         [] ->
-            shortest
+            identity
 
         x :: xs ->
             let
                 ( len, newCache ) =
                     traverse walls cache x 0
             in
-                case len of
-                    Nothing ->
-                        findShortest walls xs newCache shortest
+            case len of
+                Nothing ->
+                    findShortest walls xs newCache
 
-                    Just p ->
-                        findShortest walls xs newCache <| Just <| min p <| Maybe.withDefault p shortest
+                Just p ->
+                    Maybe.withDefault p >> min p >> Just >> findShortest walls xs newCache
 
 
 traverse : Set Position -> Dict ( Int, Int ) Int -> List NumberCell -> Int -> ( Maybe Int, Dict ( Int, Int ) Int )
@@ -118,28 +124,28 @@ traverse walls cache path result =
                 cached =
                     Dict.get ( xNum, yNum ) cache
             in
-                case cached of
-                    Nothing ->
-                        let
-                            len =
-                                AS.findPath AS.straightLineCost (availableMoves walls) xPos yPos
-                                    |> Maybe.map List.length
-                        in
-                            case len of
-                                Nothing ->
-                                    ( Nothing, cache )
+            case cached of
+                Nothing ->
+                    let
+                        len =
+                            AS.findPath AS.straightLineCost (availableMoves walls) xPos yPos
+                                |> Maybe.map List.length
+                    in
+                    case len of
+                        Nothing ->
+                            ( Nothing, cache )
 
-                                Just x ->
-                                    let
-                                        newCache =
-                                            cache
-                                                |> Dict.insert ( xNum, yNum ) x
-                                                |> Dict.insert ( yNum, xNum ) x
-                                    in
-                                        traverse walls newCache newPath <| result + x
+                        Just x ->
+                            let
+                                newCache =
+                                    cache
+                                        |> Dict.insert ( xNum, yNum ) x
+                                        |> Dict.insert ( yNum, xNum ) x
+                            in
+                            traverse walls newCache newPath <| result + x
 
-                    Just x ->
-                        traverse walls cache newPath <| result + x
+                Just x ->
+                    traverse walls cache newPath <| result + x
 
         _ ->
             ( Just result, cache )
@@ -147,7 +153,7 @@ traverse walls cache path result =
 
 isZero : NumberCell -> Bool
 isZero =
-    ((==) 0) << Tuple.second
+    Tuple.second >> (==) 0
 
 
 availableMoves : Set Position -> Position -> Set Position
@@ -171,5 +177,7 @@ neighbors walls positions result =
         pos :: xs ->
             if Set.member pos walls then
                 neighbors walls xs result
+
             else
-                neighbors walls xs <| Set.insert pos result
+                Set.insert pos result
+                    |> neighbors walls xs

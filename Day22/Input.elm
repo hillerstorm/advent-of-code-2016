@@ -1,4 +1,4 @@
-module Day22.Input exposing (rawInput, parsedInput, Node)
+module Day22.Input exposing (Node, parsedInput, rawInput)
 
 
 rawInput : String
@@ -1059,7 +1059,8 @@ Filesystem              Size  Used  Avail  Use%
 
 parsedInput : List Node
 parsedInput =
-    List.filterMap parse <| String.lines rawInput
+    String.lines rawInput
+        |> List.filterMap parse
 
 
 type alias Node =
@@ -1073,18 +1074,11 @@ type alias Node =
 parse : String -> Maybe Node
 parse line =
     case String.words line of
-        [ node, size_, used_, avail_, _ ] ->
-            case ( String.toInt <| String.dropRight 1 size_, String.toInt <| String.dropRight 1 used_, String.toInt <| String.dropRight 1 avail_ ) of
-                ( Ok size, Ok used, Ok avail ) ->
-                    Just
-                        { name = node
-                        , size = size
-                        , used = used
-                        , avail = avail
-                        }
-
-                _ ->
-                    Nothing
+        [ node, size, used, avail, _ ] ->
+            Maybe.map3 (Node node)
+                (String.toInt <| String.dropRight 1 size)
+                (String.toInt <| String.dropRight 1 used)
+                (String.toInt <| String.dropRight 1 avail)
 
         _ ->
             Nothing

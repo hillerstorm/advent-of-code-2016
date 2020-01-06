@@ -1,8 +1,8 @@
 module Day10.Day10 exposing (main)
 
-import Html exposing (..)
-import Dict exposing (..)
-import Day10.Input exposing (rawInput, parsedInput, Out(..))
+import Day10.Input exposing (Out(..), parsedInput, rawInput)
+import Dict exposing (Dict)
+import Html exposing (Html, div, text)
 
 
 getPartOne : Maybe Int -> Int -> ( Int, Int ) -> Maybe Int
@@ -14,6 +14,7 @@ getPartOne current bot comparison =
         Nothing ->
             if comparison == partOneComparison then
                 Just bot
+
             else
                 Nothing
 
@@ -38,13 +39,14 @@ execute ( bot, value ) instructions ( outputs, bots, partOne ) =
                         ( low, high ) =
                             if val < value then
                                 ( val, value )
+
                             else
                                 ( value, val )
                     in
-                        getPartOne partOne bot ( low, high )
-                            |> ((,,) outputs <| Dict.remove bot bots)
-                            |> executeBranch lowOut low instructions
-                            |> executeBranch highOut high instructions
+                    getPartOne partOne bot ( low, high )
+                        |> ((\b c -> ( outputs, b, c )) <| Dict.remove bot bots)
+                        |> executeBranch lowOut low instructions
+                        |> executeBranch highOut high instructions
 
                 Nothing ->
                     ( outputs, Dict.insert bot value bots, partOne )
@@ -98,22 +100,29 @@ solved =
         ( outputs, _, bot ) =
             insertInputs parsedInput ( Dict.empty, Dict.empty, Nothing )
     in
-        case ( Dict.get 0 outputs, Dict.get 1 outputs, Dict.get 2 outputs ) of
-            ( Just a, Just b, Just c ) ->
-                ( bot, Just (a * b * c) )
+    Maybe.map3
+        (\a b c ->
+            ( bot, Just <| a * b * c )
+        )
+        (Dict.get 0 outputs)
+        (Dict.get 1 outputs)
+        (Dict.get 2 outputs)
+        |> Maybe.withDefault ( bot, Nothing )
 
-            _ ->
-                ( bot, Nothing )
+
+print : Maybe Int -> String
+print =
+    Maybe.map String.fromInt >> Maybe.withDefault "No answer"
 
 
 main : Html msg
 main =
     let
         ( firstPart, secondPart ) =
-            solved
+            Tuple.mapBoth print print solved
     in
-        div []
-            [ div [] [ text ("Input: " ++ rawInput) ]
-            , div [] [ text ("Part 1: " ++ (toString firstPart)) ]
-            , div [] [ text ("Part 2: " ++ (toString secondPart)) ]
-            ]
+    div []
+        [ div [] [ text ("Input: " ++ rawInput) ]
+        , div [] [ text ("Part 1: " ++ firstPart) ]
+        , div [] [ text ("Part 2: " ++ secondPart) ]
+        ]

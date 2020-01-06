@@ -1,6 +1,6 @@
-module Day11.Input exposing (rawInput, parsedInput)
+module Day11.Input exposing (parsedInput, rawInput)
 
-import Regex exposing (HowMany(All), find, regex)
+import Regex exposing (Regex)
 
 
 rawInput : String
@@ -17,7 +17,11 @@ parsedInput =
 
 
 type alias Floors =
-    ( Floor, Floor, Floor, Floor )
+    { first : Floor
+    , second : Floor
+    , third : Floor
+    , fourth : Floor
+    }
 
 
 type alias Floor =
@@ -29,9 +33,18 @@ type Part
     | Microchip String
 
 
+initialFloors : Floors
+initialFloors =
+    { first = []
+    , second = []
+    , third = []
+    , fourth = []
+    }
+
+
 parse : String -> Floors
 parse =
-    List.foldl map ( [], [], [], [] ) << String.lines
+    String.lines >> List.foldl map initialFloors
 
 
 map : String -> Floors -> Floors
@@ -42,55 +55,62 @@ map line floors =
 
         floor :: "floor" :: "contains" :: rest ->
             let
-                ( first, second, third, fourth ) =
-                    floors
-
                 str =
                     String.join " " rest
 
                 generators =
-                    getParts (\x -> Generator x) genRegex str
+                    getParts Generator genRegex str
 
                 microchips =
-                    getParts (\x -> Microchip x) chipRegex str
+                    getParts Microchip chipRegex str
 
                 parts =
                     generators ++ microchips
             in
-                case floor of
-                    "first" ->
-                        ( parts, second, third, fourth )
+            case floor of
+                "first" ->
+                    { floors
+                        | first = parts
+                    }
 
-                    "second" ->
-                        ( first, parts, third, fourth )
+                "second" ->
+                    { floors
+                        | second = parts
+                    }
 
-                    "third" ->
-                        ( first, second, parts, fourth )
+                "third" ->
+                    { floors
+                        | third = parts
+                    }
 
-                    "fourth" ->
-                        ( first, second, third, parts )
+                "fourth" ->
+                    { floors
+                        | fourth = parts
+                    }
 
-                    _ ->
-                        floors
+                _ ->
+                    floors
 
         _ ->
             floors
 
 
-getParts : (String -> Part) -> Regex.Regex -> String -> List Part
-getParts f pattern str =
-    find All pattern str
-        |> List.map .submatches
-        |> List.concat
-        |> List.filterMap identity
-        |> List.map f
+getParts : (String -> Part) -> Regex -> String -> List Part
+getParts f pattern =
+    Regex.find pattern
+        >> List.map .submatches
+        >> List.concat
+        >> List.filterMap identity
+        >> List.map f
 
 
-genRegex : Regex.Regex
+genRegex : Regex
 genRegex =
-    regex "(\\w+) generator"
+    Regex.fromString "(\\w+) generator"
+        |> Maybe.withDefault Regex.never
 
 
-chipRegex : Regex.Regex
+chipRegex : Regex
 chipRegex =
-    regex "(\\w+)-compatible"
+    Regex.fromString "(\\w+)-compatible"
+        |> Maybe.withDefault Regex.never
