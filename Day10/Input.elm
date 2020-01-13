@@ -1,4 +1,4 @@
-module Day10.Input exposing (Out(..), parsedInput, rawInput)
+module Day10.Input exposing (Out(..), parsedInput)
 
 import Dict exposing (Dict)
 

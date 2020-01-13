@@ -1,7 +1,7 @@
 module Day04.Part1 exposing (main, validRoom)
 
 import Char exposing (isLower)
-import Day04.Input exposing (Room, parsedInput, rawInput)
+import Day04.Input exposing (Room, parsedInput)
 import Html exposing (Html, div, text)
 
 
@@ -69,9 +69,6 @@ main : Html msg
 main =
     div []
         [ div []
-            [ text ("Input: " ++ rawInput)
-            ]
-        , div []
             [ text ("Result: " ++ (String.fromInt <| List.sum <| List.filterMap filterValid parsedInput))
             ]
         ]

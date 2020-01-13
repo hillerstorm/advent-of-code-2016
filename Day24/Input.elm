@@ -1,19 +1,20 @@
-module Day24.Input exposing (Grid, NumberCell, Position, parsedInput, rawInput)
+module Day24.Input exposing (Grid, NumberCell, Position, parsedInput)
 
 import Set exposing (Set)
 
 
+
+-- rawInput : String
+-- rawInput =
+--     """###########
+-- #0.1.....2#
+-- #.#######.#
+-- #4.......3#
+-- ###########"""
+
+
 rawInput : String
 rawInput =
-    """###########
-#0.1.....2#
-#.#######.#
-#4.......3#
-###########"""
-
-
-rawInput2 : String
-rawInput2 =
     """#######################################################################################################################################################################################
 #...........#.....#...........#.#.......#.....#.#...............#.....#.....#.......#.......#.......#.....................#.........#.....#...#3......#...#.#.............#.......#...#
 #####.#.#.###.###.#####.#.#####.#.###.###.###.#.#.#.#.#.#.###.#.###.###.###.#.#######.#.#.#.###.###.#.#.#.#####.#.#.#####.###.#.#######.#############.#.#.#.#.#.#.###.#.#.#.#.###.#.#.#
@@ -108,13 +109,20 @@ mapChars row cells numbers walls =
         ( col, chr ) :: xs ->
             case chr of
                 '#' ->
-                    Set.insert ( col, row ) walls
-                        |> mapChars row xs numbers
+                    let
+                        newWalls =
+                            Set.insert ( col, row ) walls
+                    in
+                    mapChars row xs numbers newWalls
 
                 x ->
                     case String.toInt <| String.fromChar x of
                         Just i ->
-                            mapChars row xs (( ( col, row ), i ) :: numbers) walls
+                            let
+                                newNumbers =
+                                    ( ( col, row ), i ) :: numbers
+                            in
+                            mapChars row xs newNumbers walls
 
                         Nothing ->
                             mapChars row xs numbers walls

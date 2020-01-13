@@ -11,8 +11,7 @@ input =
 main : Html msg
 main =
     div []
-        [ div [] [ text ("Input: " ++ input) ]
-        , div [] [ text ("Part 1: " ++ (calcChecksum "" <| dragon 272 input)) ]
+        [ div [] [ text ("Part 1: " ++ (calcChecksum "" <| dragon 272 input)) ]
         , div [] [ text ("Part 2: " ++ (calcChecksum "" <| dragon 35651584 input)) ]
         ]
 
@@ -31,7 +30,7 @@ calcChecksum checksum str =
             newChecksum =
                 checksum ++ checkPair str
         in
-        calcChecksum newChecksum <| String.dropLeft 2 str
+        calcChecksum newChecksum (String.dropLeft 2 str)
 
 
 checkPair : String -> String
@@ -58,4 +57,4 @@ dragon maxLength str =
             rightPart =
                 String.foldl String.cons "" str
         in
-        dragon maxLength <| str ++ "0" ++ rightPart
+        dragon maxLength (str ++ "0" ++ rightPart)

@@ -1,18 +1,15 @@
 module Day08.Day8 exposing (main)
 
 import Array exposing (Array)
-import Day08.Input exposing (Instruction(..), parsedInput, rawInput)
+import Day08.Input exposing (Instruction(..), parsedInput)
 import Html exposing (Html, div, text)
-import Html.Attributes exposing (..)
+import Html.Attributes exposing (style)
 
 
 main : Html msg
 main =
     div []
         ([ div []
-            [ text ("Input: " ++ rawInput)
-            ]
-         , div []
             [ text ("Part 1: " ++ (String.fromInt <| solve <| draw parsedInput))
             ]
          , div []

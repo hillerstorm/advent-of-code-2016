@@ -1,7 +1,7 @@
 module Day23.Day23 exposing (main)
 
 import Array exposing (Array)
-import Day23.Input exposing (Instruction(..), Register(..), Value(..), parsedInput, rawInput)
+import Day23.Input exposing (Instruction(..), Register(..), Value(..), parsedInput)
 import Html exposing (Html, div, text)
 
 
@@ -26,8 +26,7 @@ initialPart2 =
 main : Html msg
 main =
     div []
-        [ div [] [ text ("Input: " ++ rawInput) ]
-        , div [] [ text ("Part 1: " ++ (String.fromInt <| solve 0 initialInstructions optimizedInitialInstructions initialPart1)) ]
+        [ div [] [ text ("Part 1: " ++ (String.fromInt <| solve 0 initialInstructions optimizedInitialInstructions initialPart1)) ]
         , div [] [ text ("Part 2: " ++ (String.fromInt <| solve 0 initialInstructions optimizedInitialInstructions initialPart2)) ]
         ]
 
@@ -56,7 +55,7 @@ optimize instructions =
 
 
 findIncByPattern : List ( Int, Instruction ) -> Array Instruction -> Array Instruction
-findIncByPattern indexed =
+findIncByPattern indexed result =
     case indexed of
         ( i, a ) :: b :: c :: xs ->
             let
@@ -69,26 +68,26 @@ findIncByPattern indexed =
                         case z of
                             Reg r ->
                                 if y == r then
-                                    Array.set i (IncBy x y) >> findIncByPattern nextIndexed
+                                    findIncByPattern nextIndexed (Array.set i (IncBy x y) result)
 
                                 else
-                                    findIncByPattern nextIndexed
+                                    findIncByPattern nextIndexed result
 
                             Num _ ->
-                                findIncByPattern nextIndexed
+                                findIncByPattern nextIndexed result
 
                     else
-                        findIncByPattern nextIndexed
+                        findIncByPattern nextIndexed result
 
                 _ ->
-                    findIncByPattern nextIndexed
+                    findIncByPattern nextIndexed result
 
         _ ->
-            identity
+            result
 
 
 findMulPattern : List ( Int, Instruction ) -> Array Instruction -> Array Instruction
-findMulPattern indexed =
+findMulPattern indexed result =
     case indexed of
         ( i, a ) :: b :: c :: d :: e :: f :: xs ->
             let
@@ -101,22 +100,22 @@ findMulPattern indexed =
                         case l of
                             Reg r ->
                                 if y == j && k == r then
-                                    Array.set i (Mul z k x j) >> findMulPattern nextIndexed
+                                    findMulPattern nextIndexed (Array.set i (Mul z k x j) result)
 
                                 else
-                                    findMulPattern nextIndexed
+                                    findMulPattern nextIndexed result
 
                             Num _ ->
-                                findMulPattern nextIndexed
+                                findMulPattern nextIndexed result
 
                     else
-                        findMulPattern nextIndexed
+                        findMulPattern nextIndexed result
 
                 _ ->
-                    findMulPattern nextIndexed
+                    findMulPattern nextIndexed result
 
         _ ->
-            identity
+            result
 
 
 solve : Int -> Array Instruction -> Array Instruction -> Registers -> Int
@@ -127,32 +126,47 @@ solve index original optimized registers =
     else
         case Array.get index optimized of
             Just (Cpy value register) ->
-                registers
-                    |> copyValue value register
-                    |> solve (index + 1) original optimized
+                let
+                    newRegisters =
+                        registers
+                            |> copyValue value register
+                in
+                solve (index + 1) original optimized newRegisters
 
             Just (Inc register) ->
-                registers
-                    |> increment (Num 1) register
-                    |> solve (index + 1) original optimized
+                let
+                    newRegisters =
+                        registers
+                            |> increment (Num 1) register
+                in
+                solve (index + 1) original optimized newRegisters
 
             Just (IncBy register value) ->
-                registers
-                    |> increment (Reg value) register
-                    |> reset value
-                    |> solve (index + 2) original optimized
+                let
+                    newRegisters =
+                        registers
+                            |> increment (Reg value) register
+                            |> reset value
+                in
+                solve (index + 2) original optimized newRegisters
 
             Just (Mul register val1 val2 val3) ->
-                registers
-                    |> multiply val1 val2 register
-                    |> reset val1
-                    |> reset val3
-                    |> solve (index + 5) original optimized
+                let
+                    newRegisters =
+                        registers
+                            |> multiply val1 val2 register
+                            |> reset val1
+                            |> reset val3
+                in
+                solve (index + 5) original optimized newRegisters
 
             Just (Dec register) ->
-                registers
-                    |> decrement register
-                    |> solve (index + 1) original optimized
+                let
+                    newRegisters =
+                        registers
+                            |> decrement register
+                in
+                solve (index + 1) original optimized newRegisters
 
             Just (Jnz value steps) ->
                 let
@@ -298,32 +312,33 @@ toggle register index instructions registers =
             index + getRegister register registers
 
         newInstruction =
-            case Array.get toggleIndex instructions of
-                Just (Inc reg) ->
-                    Just <| Dec reg
+            Maybe.map
+                (\instruction ->
+                    case instruction of
+                        Inc reg ->
+                            Dec reg
 
-                Just (Dec reg) ->
-                    Just <| Inc reg
+                        Dec reg ->
+                            Inc reg
 
-                Just (Tgl reg) ->
-                    Just <| Inc reg
+                        Tgl reg ->
+                            Inc reg
 
-                Just (Cpy value reg) ->
-                    Just <| Jnz value <| Reg reg
+                        Cpy value reg ->
+                            Jnz value <| Reg reg
 
-                Just (Jnz value steps) ->
-                    case steps of
-                        Reg r ->
-                            Just <| Cpy value r
+                        Jnz value steps ->
+                            case steps of
+                                Reg r ->
+                                    Cpy value r
 
-                        Num _ ->
-                            Just noop
+                                Num _ ->
+                                    noop
 
-                (Just _) as other ->
-                    other
-
-                Nothing ->
-                    Nothing
+                        other ->
+                            other
+                )
+                (Array.get toggleIndex instructions)
     in
     case newInstruction of
         Just instruction ->

@@ -1,6 +1,6 @@
 module Day03.Part1 exposing (main)
 
-import Day03.Input exposing (parsedInput, rawInput)
+import Day03.Input exposing (parsedInput)
 import Html exposing (Html, div, text)
 
 
@@ -18,9 +18,6 @@ main : Html msg
 main =
     div []
         [ div []
-            [ text ("Input: " ++ rawInput)
-            ]
-        , div []
             [ text ("Result: " ++ (String.fromInt <| List.length <| List.filter isValid parsedInput))
             ]
         ]

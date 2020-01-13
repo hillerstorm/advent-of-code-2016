@@ -1,21 +1,20 @@
 module Day25.Day25 exposing (main)
 
 import Array exposing (Array)
-import Day25.Input exposing (Instruction(..), Register(..), Value(..), parsedInput, rawInput)
+import Day25.Input exposing (Instruction(..), Register(..), Value(..), parsedInput)
 import Html exposing (Html, div, text)
 
 
 main : Html msg
 main =
     div []
-        [ div [] [ text ("Input: " ++ rawInput) ]
-        , div [] [ text ("Part 1: " ++ (String.fromInt <| findAnswer 0)) ]
+        [ div [] [ text ("Part 1: " ++ (String.fromInt <| findAnswer 0)) ]
         ]
 
 
 optimizedInitialInstructions : Array Instruction
 optimizedInitialInstructions =
-    optimize <| Array.fromList parsedInput
+    optimize (Array.fromList parsedInput)
 
 
 optimize : Array Instruction -> Array Instruction
@@ -32,7 +31,7 @@ optimize instructions =
 
 
 findIncByPattern : List ( Int, Instruction ) -> Array Instruction -> Array Instruction
-findIncByPattern indexed =
+findIncByPattern indexed result =
     case indexed of
         ( i, a ) :: b :: c :: xs ->
             let
@@ -45,26 +44,26 @@ findIncByPattern indexed =
                         case z of
                             Reg r ->
                                 if y == r then
-                                    Array.set i (IncBy x y) >> findIncByPattern nextIndexed
+                                    findIncByPattern nextIndexed (Array.set i (IncBy x y) result)
 
                                 else
-                                    findIncByPattern nextIndexed
+                                    findIncByPattern nextIndexed result
 
                             Num _ ->
-                                findIncByPattern nextIndexed
+                                findIncByPattern nextIndexed result
 
                     else
-                        findIncByPattern nextIndexed
+                        findIncByPattern nextIndexed result
 
                 _ ->
-                    findIncByPattern nextIndexed
+                    findIncByPattern nextIndexed result
 
         _ ->
-            identity
+            result
 
 
 findMulPattern : List ( Int, Instruction ) -> Array Instruction -> Array Instruction
-findMulPattern indexed =
+findMulPattern indexed result =
     case indexed of
         ( i, a ) :: b :: c :: d :: e :: f :: xs ->
             let
@@ -77,22 +76,22 @@ findMulPattern indexed =
                         case l of
                             Reg r ->
                                 if y == j && k == r then
-                                    Array.set i (Mul z k x j) >> findMulPattern nextIndexed
+                                    findMulPattern nextIndexed (Array.set i (Mul z k x j) result)
 
                                 else
-                                    findMulPattern nextIndexed
+                                    findMulPattern nextIndexed result
 
                             Num _ ->
-                                findMulPattern nextIndexed
+                                findMulPattern nextIndexed result
 
                     else
-                        findMulPattern nextIndexed
+                        findMulPattern nextIndexed result
 
                 _ ->
-                    findMulPattern nextIndexed
+                    findMulPattern nextIndexed result
 
         _ ->
-            identity
+            result
 
 
 initialRegisters : Int -> Registers
@@ -107,7 +106,7 @@ initialRegisters a =
 
 findAnswer : Int -> Int
 findAnswer a =
-    solve a 0 optimizedInitialInstructions <| initialRegisters a
+    solve a 0 optimizedInitialInstructions (initialRegisters a)
 
 
 solve : Int -> Int -> Array Instruction -> Registers -> Int
@@ -118,37 +117,52 @@ solve initialA index optimized registers =
                 initialA
 
             _ ->
-                findAnswer <| initialA + 1
+                findAnswer (initialA + 1)
 
     else
         case Array.get index optimized of
             Just (Cpy value register) ->
-                registers
-                    |> copyValue value register
-                    |> solve initialA (index + 1) optimized
+                let
+                    newRegisters =
+                        registers
+                            |> copyValue value register
+                in
+                solve initialA (index + 1) optimized newRegisters
 
             Just (Inc register) ->
-                registers
-                    |> increment (Num 1) register
-                    |> solve initialA (index + 1) optimized
+                let
+                    newRegisters =
+                        registers
+                            |> increment (Num 1) register
+                in
+                solve initialA (index + 1) optimized newRegisters
 
             Just (IncBy register value) ->
-                registers
-                    |> increment (Reg value) register
-                    |> reset value
-                    |> solve initialA (index + 2) optimized
+                let
+                    newRegisters =
+                        registers
+                            |> increment (Reg value) register
+                            |> reset value
+                in
+                solve initialA (index + 2) optimized newRegisters
 
             Just (Mul register val1 val2 val3) ->
-                registers
-                    |> multiply val1 val2 register
-                    |> reset val1
-                    |> reset val3
-                    |> solve initialA (index + 5) optimized
+                let
+                    newRegisters =
+                        registers
+                            |> multiply val1 val2 register
+                            |> reset val1
+                            |> reset val3
+                in
+                solve initialA (index + 5) optimized newRegisters
 
             Just (Dec register) ->
-                registers
-                    |> decrement register
-                    |> solve initialA (index + 1) optimized
+                let
+                    newRegisters =
+                        registers
+                            |> decrement register
+                in
+                solve initialA (index + 1) optimized newRegisters
 
             Just (Jnz value steps) ->
                 let
@@ -158,9 +172,12 @@ solve initialA index optimized registers =
                 solve initialA newIndex optimized registers
 
             Just (Out value) ->
-                registers
-                    |> out value
-                    |> solve initialA (index + 1) optimized
+                let
+                    newRegisters =
+                        registers
+                            |> out value
+                in
+                solve initialA (index + 1) optimized newRegisters
 
             Nothing ->
                 solve initialA -1 optimized registers

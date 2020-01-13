@@ -5,9 +5,8 @@ import Day01.Input exposing (Move(..), parsedInput)
 import Html exposing (Html, div, text)
 import Process exposing (sleep)
 import Svg exposing (Svg, rect, svg)
-import Svg.Attributes exposing (..)
-import Task exposing (Task)
-import Tuple exposing (mapFirst, mapSecond)
+import Svg.Attributes exposing (fill, height, width, x, y)
+import Task
 
 
 type alias Model =

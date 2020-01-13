@@ -1,6 +1,6 @@
 module Day22.Day22 exposing (main)
 
-import Day22.Input exposing (Node, parsedInput, rawInput)
+import Day22.Input exposing (Node, parsedInput)
 import Html exposing (Html, div, text)
 
 
@@ -20,13 +20,13 @@ part1 =
 
 
 viable : List Node -> List ( Node, Node ) -> List ( Node, Node )
-viable nodes =
+viable nodes result =
     case nodes of
         [] ->
-            identity
+            result
 
         node :: xs ->
-            addViable node xs >> viable xs
+            viable xs (addViable node xs result)
 
 
 addViable : Node -> List Node -> List ( Node, Node ) -> List ( Node, Node )

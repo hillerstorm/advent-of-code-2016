@@ -1,6 +1,6 @@
 module Day20.Day20 exposing (main)
 
-import Day20.Input exposing (parsedInput, rawInput)
+import Day20.Input exposing (parsedInput)
 import Html exposing (Html, div, text)
 import Set exposing (Set)
 
@@ -24,17 +24,17 @@ finalWhitelist =
 
 
 whitelist : List ( Int, Int ) -> Int -> Set Int -> List Int
-whitelist blacklists idx =
+whitelist blacklists idx result =
     case blacklists of
         ( l, r ) :: xs ->
             if l > idx then
-                Set.insert idx >> whitelist blacklists (idx + 1)
+                whitelist blacklists (idx + 1) (Set.insert idx result)
 
             else if r > idx then
-                whitelist xs (r + 1)
+                whitelist xs (r + 1) result
 
             else
-                whitelist xs idx
+                whitelist xs idx result
 
         _ ->
-            Set.toList
+            Set.toList result

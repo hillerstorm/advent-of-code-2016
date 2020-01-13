@@ -8,8 +8,7 @@ import Regex
 main : Html msg
 main =
     div []
-        [ div [] [ text ("Input: " ++ input) ]
-        , div [] [ text ("Part 1: " ++ partOne) ]
+        [ div [] [ text ("Part 1: " ++ partOne) ]
         , div [] [ text ("Part 2: " ++ partTwo) ]
         ]
 
@@ -47,7 +46,7 @@ mapIndex hashCount x =
 getHash : Int -> String -> String
 getHash hashCount x =
     if hashCount > 0 then
-        getHash (hashCount - 1) <| MD5.hex x
+        getHash (hashCount - 1) (MD5.hex x)
 
     else
         x
@@ -73,7 +72,7 @@ find hashes result hashCount index =
                             |> Maybe.map (mapFive idx result xs)
                             |> Maybe.withDefault result
                 in
-                find nextHashes newResult hashCount <| index + 1
+                find nextHashes newResult hashCount (index + 1)
 
 
 mapFive : Int -> List Int -> List ( Int, String ) -> String -> List Int

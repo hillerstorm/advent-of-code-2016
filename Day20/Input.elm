@@ -1,4 +1,4 @@
-module Day20.Input exposing (parsedInput, rawInput)
+module Day20.Input exposing (parsedInput)
 
 import Set exposing (Set)
 
@@ -953,23 +953,23 @@ rawInput =
 
 
 parse : List String -> Set ( Int, Int ) -> Set ( Int, Int )
-parse lines =
+parse lines result =
     case lines of
         line :: xs ->
             case String.split "-" line of
                 [ left, right ] ->
                     case ( String.toInt left, String.toInt right ) of
                         ( Just l, Just r ) ->
-                            Set.insert ( l, r ) >> parse xs
+                            parse xs (Set.insert ( l, r ) result)
 
                         _ ->
-                            parse xs
+                            parse xs result
 
                 _ ->
-                    parse xs
+                    parse xs result
 
         _ ->
-            identity
+            result
 
 
 parsedInput : List ( Int, Int )

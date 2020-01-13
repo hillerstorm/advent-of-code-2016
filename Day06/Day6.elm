@@ -1,10 +1,10 @@
 module Day06.Day6 exposing (main)
 
-import Array exposing (Array)
-import Day06.Input exposing (parsedInput, rawInput)
+import Array
+import Day06.Input exposing (parsedInput)
 import Html exposing (Html, div, text)
-import Regex exposing (Regex)
-import Set exposing (Set)
+import Regex
+import Set
 
 
 rexpSort : String -> Char -> Int
@@ -67,9 +67,6 @@ main : Html msg
 main =
     div []
         [ div []
-            [ text ("Input: " ++ rawInput)
-            ]
-        , div []
             [ text ("Part 1: " ++ solve parsedInput "" 0 True)
             ]
         , div []

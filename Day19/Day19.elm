@@ -12,8 +12,7 @@ input =
 main : Html msg
 main =
     div []
-        [ div [] [ text ("Input: " ++ String.fromInt input) ]
-        , div [] [ text ("Part 1: " ++ (String.fromInt <| part1 input)) ]
+        [ div [] [ text ("Part 1: " ++ (String.fromInt <| part1 input)) ]
         , div [] [ text ("Part 2: " ++ (String.fromInt <| part2 input 1)) ]
         ]
 

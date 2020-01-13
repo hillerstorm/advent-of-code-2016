@@ -1,6 +1,6 @@
 module Day07.Part1 exposing (main)
 
-import Day07.Input exposing (IPv7, parsedInput, rawInput)
+import Day07.Input exposing (IPv7, parsedInput)
 import Html exposing (Html, div, text)
 
 
@@ -18,7 +18,11 @@ abba supernet =
                 identical =
                     a == b && b == c && c == d
             in
-            not identical && (firstHalf == secondHalf) || (abba <| List.drop 1 supernet)
+            if not identical && (firstHalf == secondHalf) then
+                True
+
+            else
+                abba (List.drop 1 supernet)
 
         _ ->
             False
@@ -31,7 +35,11 @@ abbaIn list =
             False
 
         x :: xs ->
-            (abba <| String.toList x) || abbaIn xs
+            if abba <| String.toList x then
+                True
+
+            else
+                abbaIn xs
 
 
 tlsSupport : IPv7 -> Bool
@@ -48,9 +56,6 @@ main : Html msg
 main =
     div []
         [ div []
-            [ text ("Input: " ++ rawInput)
-            ]
-        , div []
             [ text ("Result: " ++ (String.fromInt <| solve parsedInput))
             ]
         ]

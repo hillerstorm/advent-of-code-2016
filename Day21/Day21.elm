@@ -1,6 +1,6 @@
 module Day21.Day21 exposing (main)
 
-import Day21.Input exposing (Direction(..), Instruction(..), parsedInput, rawInput)
+import Day21.Input exposing (Direction(..), Instruction(..), parsedInput)
 import Html exposing (Html, div, text)
 
 
@@ -17,8 +17,7 @@ scrambled =
 main : Html msg
 main =
     div []
-        [ div [] [ text ("Input: " ++ rawInput) ]
-        , div [] [ text ("Part 1: " ++ solve One parsedInput password) ]
+        [ div [] [ text ("Part 1: " ++ solve One parsedInput password) ]
         , div [] [ text ("Part 2: " ++ solve Two (List.reverse parsedInput) scrambled) ]
         ]
 
@@ -30,24 +29,28 @@ solve part instructions pass =
             pass
 
         instruction :: xs ->
-            case instruction of
-                SwapPos x y ->
-                    solve part xs <| swapPos pass x y
+            let
+                newPass =
+                    case instruction of
+                        SwapPos x y ->
+                            swapPos pass x y
 
-                SwapLetter x y ->
-                    solve part xs <| swapLetter x y pass
+                        SwapLetter x y ->
+                            swapLetter x y pass
 
-                Rotate dir steps ->
-                    solve part xs <| rotate pass (realDir part dir) steps
+                        Rotate dir steps ->
+                            rotate pass (realDir part dir) steps
 
-                RotateFrom letter ->
-                    solve part xs <| rotateFrom part pass letter <| realDir part Right
+                        RotateFrom letter ->
+                            rotateFrom part pass letter <| realDir part Right
 
-                Reverse x y ->
-                    solve part xs <| reverse pass x y
+                        Reverse x y ->
+                            reverse pass x y
 
-                Move x y ->
-                    solve part xs <| move pass <| actualMove part x y
+                        Move x y ->
+                            move pass <| actualMove part x y
+            in
+            solve part xs newPass
 
 
 type Part
@@ -106,7 +109,7 @@ rotate pass dir steps =
                         in
                         chr ++ String.dropRight 1 pass
         in
-        rotate newPass dir <| steps - 1
+        rotate newPass dir (steps - 1)
 
 
 rotateFrom : Part -> String -> String -> Direction -> String

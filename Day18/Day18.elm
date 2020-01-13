@@ -29,8 +29,7 @@ parse chr =
 main : Html msg
 main =
     div []
-        [ div [] [ text ("Input: " ++ input) ]
-        , div [] [ text ("Part 1: " ++ (String.fromInt <| solve 40 0 1 parsedInput)) ]
+        [ div [] [ text ("Part 1: " ++ (String.fromInt <| solve 40 0 1 parsedInput)) ]
         , div [] [ text ("Part 2: " ++ (String.fromInt <| solve 400000 0 1 parsedInput)) ]
         ]
 
@@ -48,13 +47,17 @@ solve max sum rows current =
         newSum
 
     else
-        solve max newSum nextRows <| nextRow [] <| 1 :: current ++ [ 1 ]
+        let
+            nextCurrent =
+                nextRow [] <| 1 :: current ++ [ 1 ]
+        in
+        solve max newSum nextRows nextCurrent
 
 
 nextRow : List Int -> List Int -> List Int
 nextRow result lastRow =
     case lastRow of
-        lft :: _ :: rgt :: xs ->
+        lft :: _ :: rgt :: _ ->
             let
                 newResult =
                     if lft == rgt then
@@ -63,7 +66,7 @@ nextRow result lastRow =
                     else
                         result ++ [ 0 ]
             in
-            nextRow newResult <| List.drop 1 lastRow
+            nextRow newResult (List.drop 1 lastRow)
 
         _ ->
             result

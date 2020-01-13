@@ -1,4 +1,4 @@
-module Day21.Input exposing (Direction(..), Instruction(..), parsedInput, rawInput)
+module Day21.Input exposing (Direction(..), Instruction(..), parsedInput)
 
 
 rawInput : String

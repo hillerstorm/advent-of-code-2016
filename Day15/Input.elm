@@ -1,4 +1,4 @@
-module Day15.Input exposing (Disc, parsedInput, rawInput)
+module Day15.Input exposing (Disc, parsedInput)
 
 
 rawInput : String

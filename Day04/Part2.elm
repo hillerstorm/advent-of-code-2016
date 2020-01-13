@@ -1,7 +1,7 @@
 module Day04.Part2 exposing (main)
 
 import Char exposing (fromCode, toCode)
-import Day04.Input exposing (Room, parsedInput, rawInput)
+import Day04.Input exposing (Room, parsedInput)
 import Day04.Part1 exposing (validRoom)
 import Html exposing (Html, div, text)
 
@@ -21,7 +21,11 @@ shift steps chr =
                     shift (steps - 1) 'a'
 
                 _ ->
-                    shift (steps - 1) <| fromCode <| (+) 1 <| toCode chr
+                    let
+                        code =
+                            1 + toCode chr
+                    in
+                    shift (steps - 1) (fromCode code)
 
 
 decrypt : Room -> Room
@@ -50,9 +54,6 @@ main : Html msg
 main =
     div []
         [ div []
-            [ text ("Input: " ++ rawInput)
-            ]
-        , div []
             [ text ("Result: " ++ solve parsedInput)
             ]
         ]

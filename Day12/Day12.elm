@@ -1,7 +1,7 @@
 module Day12.Day12 exposing (main)
 
 import Array exposing (Array)
-import Day12.Input exposing (Instruction(..), Register(..), Value(..), parsedInput, rawInput)
+import Day12.Input exposing (Instruction(..), Register(..), Value(..), parsedInput)
 import Html exposing (Html, div, text)
 
 
@@ -73,8 +73,8 @@ getValue value registers =
             registers.d
 
 
-jump : Registers -> Value -> Int -> Int -> Int
-jump registers value steps index =
+jump : Registers -> Value -> Int -> Int
+jump registers value steps =
     let
         val =
             getValue value registers
@@ -105,7 +105,7 @@ solve registers index instructions =
                         ( decrement registers register, index + 1 )
 
                     Just (Jnz value steps) ->
-                        ( registers, index + jump registers value steps index )
+                        ( registers, index + jump registers value steps )
 
                     Nothing ->
                         ( registers, -1 )
@@ -134,7 +134,6 @@ initialPart2 =
 main : Html msg
 main =
     div []
-        [ div [] [ text ("Input: " ++ rawInput) ]
-        , div [] [ text ("Part 1: " ++ (String.fromInt <| solve initialPart1 0 <| Array.fromList parsedInput)) ]
+        [ div [] [ text ("Part 1: " ++ (String.fromInt <| solve initialPart1 0 <| Array.fromList parsedInput)) ]
         , div [] [ text ("Part 2: " ++ (String.fromInt <| solve initialPart2 0 <| Array.fromList parsedInput)) ]
         ]

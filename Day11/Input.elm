@@ -1,4 +1,4 @@
-module Day11.Input exposing (parsedInput, rawInput)
+module Day11.Input exposing (parsedInput)
 
 import Regex exposing (Regex)
 

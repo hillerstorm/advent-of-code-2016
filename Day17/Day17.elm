@@ -49,8 +49,7 @@ print =
 main : Html msg
 main =
     div []
-        [ div [] [ text ("Input: " ++ input) ]
-        , div [] [ text ("Part 1: " ++ (noAnswerDefault <| solve Shortest Nothing [ ( start, [] ) ])) ]
+        [ div [] [ text ("Part 1: " ++ (noAnswerDefault <| solve Shortest Nothing [ ( start, [] ) ])) ]
         , div [] [ text ("Part 2: " ++ (print <| Maybe.map String.length <| solve Longest Nothing [ ( start, [] ) ])) ]
         ]
 
@@ -71,68 +70,65 @@ solve part result paths =
         [] ->
             result
 
-        path :: xs ->
-            findPath part result path xs
-
-
-findPath : Part -> Maybe String -> Path -> List Path -> Maybe String
-findPath part result (( ( code, ( x, y ) as position ) as current, rest ) as path) xs =
-    if position == goal then
-        withGoal part result xs <| extractPath path
-
-    else
-        case hex code of
-            [ up, down, left, right ] ->
+        (( ( code, ( x, y ) as position ) as current, rest ) as path) :: xs ->
+            if position == goal then
                 let
-                    nb =
-                        neighbors
-                            code
-                            [ ( isWall up, ( "U", ( x, y - 1 ) ) )
-                            , ( isWall down, ( "D", ( x, y + 1 ) ) )
-                            , ( isWall left, ( "L", ( x - 1, y ) ) )
-                            , ( isWall right, ( "R", ( x + 1, y ) ) )
-                            ]
-                            []
+                    nextPath =
+                        extractPath path
                 in
-                case nb of
-                    [] ->
-                        solve part result xs
+                case part of
+                    Shortest ->
+                        Just nextPath
+
+                    Longest ->
+                        let
+                            newResult =
+                                case result of
+                                    Nothing ->
+                                        nextPath
+
+                                    Just res ->
+                                        if String.length nextPath > String.length res then
+                                            nextPath
+
+                                        else
+                                            res
+                        in
+                        solve part (Just newResult) xs
+
+            else
+                case hex code of
+                    [ up, down, left, right ] ->
+                        let
+                            nb =
+                                neighbors
+                                    code
+                                    [ ( isWall up, ( "U", ( x, y - 1 ) ) )
+                                    , ( isWall down, ( "D", ( x, y + 1 ) ) )
+                                    , ( isWall left, ( "L", ( x - 1, y ) ) )
+                                    , ( isWall right, ( "R", ( x + 1, y ) ) )
+                                    ]
+                                    []
+                        in
+                        case nb of
+                            [] ->
+                                solve part result xs
+
+                            _ ->
+                                let
+                                    newRest =
+                                        current :: rest
+
+                                    newPaths =
+                                        xs ++ List.map (\a -> ( a, newRest )) nb
+
+                                    nextPath =
+                                        List.sortWith (sortByCode part) newPaths
+                                in
+                                solve part result nextPath
 
                     _ ->
-                        let
-                            newRest =
-                                current :: rest
-
-                            newPaths =
-                                xs ++ List.map (\a -> ( a, newRest )) nb
-                        in
-                        solve part result <| List.sortWith (sortByCode part) newPaths
-
-            _ ->
-                result
-
-
-withGoal : Part -> Maybe String -> List Path -> String -> Maybe String
-withGoal part result xs path =
-    case part of
-        Shortest ->
-            Just path
-
-        Longest ->
-            let
-                newResult =
-                    case result of
-                        Nothing ->
-                            path
-
-                        Just res ->
-                            if String.length path > String.length res then
-                                path
-
-                            else
-                                res
-            in
-            solve part (Just newResult) xs
+                        result
 
 
 hex : String -> List Char
@@ -193,7 +189,7 @@ neighbors code positions result =
                     newCode =
                         code ++ direction
                 in
-                neighbors code xs <| result ++ [ ( newCode, ( x, y ) ) ]
+                neighbors code xs (result ++ [ ( newCode, ( x, y ) ) ])
 
 
 wallChars : List Char

@@ -1,6 +1,6 @@
 module Day10.Day10 exposing (main)
 
-import Day10.Input exposing (Out(..), parsedInput, rawInput)
+import Day10.Input exposing (Out(..), parsedInput)
 import Dict exposing (Dict)
 import Html exposing (Html, div, text)
 
@@ -85,13 +85,13 @@ partOneComparison =
 
 
 insertInputs : ( Inputs, Instructions ) -> ( Outputs, Bots, Maybe Int ) -> ( Outputs, Bots, Maybe Int )
-insertInputs ( inputs, instructions ) =
+insertInputs ( inputs, instructions ) result =
     case inputs of
         [] ->
-            identity
+            result
 
         x :: xs ->
-            insertInputs ( xs, instructions ) << execute x instructions
+            insertInputs ( xs, instructions ) (execute x instructions result)
 
 
 solved : ( Maybe Int, Maybe Int )
@@ -122,7 +122,6 @@ main =
             Tuple.mapBoth print print solved
     in
     div []
-        [ div [] [ text ("Input: " ++ rawInput) ]
-        , div [] [ text ("Part 1: " ++ firstPart) ]
+        [ div [] [ text ("Part 1: " ++ firstPart) ]
         , div [] [ text ("Part 2: " ++ secondPart) ]
         ]

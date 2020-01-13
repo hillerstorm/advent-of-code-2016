@@ -1,14 +1,13 @@
 module Day15.Day15 exposing (main)
 
-import Day15.Input exposing (Disc, parsedInput, rawInput)
+import Day15.Input exposing (Disc, parsedInput)
 import Html exposing (Html, div, text)
 
 
 main : Html msg
 main =
     div []
-        [ div [] [ text ("Input: " ++ rawInput) ]
-        , div [] [ text ("Part 1: " ++ (String.fromInt <| solve parsedInput 0)) ]
+        [ div [] [ text ("Part 1: " ++ (String.fromInt <| solve parsedInput 0)) ]
         , div [] [ text ("Part 2: " ++ (String.fromInt <| solve (parsedInput ++ [ ( 11, 0 ) ]) 0)) ]
         ]
 
@@ -19,7 +18,7 @@ solve discs time =
         time
 
     else
-        solve discs <| time + 1
+        solve discs (time + 1)
 
 
 isOpen : List Disc -> Int -> Bool
@@ -29,7 +28,11 @@ isOpen discs time =
             True
 
         disc :: xs ->
-            hasSlot time disc && (isOpen xs <| time + 1)
+            if not <| hasSlot time disc then
+                False
+
+            else
+                isOpen xs (time + 1)
 
 
 hasSlot : Int -> Disc -> Bool

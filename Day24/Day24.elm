@@ -1,7 +1,7 @@
 module Day24.Day24 exposing (main)
 
 import AStar as AS exposing (findPath, straightLineCost)
-import Day24.Input exposing (Grid, NumberCell, Position, parsedInput, rawInput)
+import Day24.Input exposing (Grid, NumberCell, Position, parsedInput)
 import Dict exposing (Dict)
 import Html exposing (Html, div, text)
 import Set exposing (Set)
@@ -15,8 +15,7 @@ print =
 main : Html msg
 main =
     div []
-        [ div [] [ text ("Input: " ++ rawInput) ]
-        , div [] [ text ("Part 1: " ++ (print <| solve One parsedInput)) ]
+        [ div [] [ text ("Part 1: " ++ (print <| solve One parsedInput)) ]
         , div [] [ text ("Part 2: " ++ (print <| solve Two parsedInput)) ]
         ]
 
@@ -32,9 +31,10 @@ solve part grid =
         ( zero, rest ) =
             List.partition isZero grid.numbers
     in
-    case zero of
-        [ x ] ->
+    Maybe.andThen
+        (\x ->
             let
+                mapFun : List NumberCell -> List NumberCell
                 mapFun =
                     case part of
                         One ->
@@ -48,17 +48,16 @@ solve part grid =
                         |> List.map mapFun
             in
             findShortest grid.walls combinations Dict.empty Nothing
+        )
+        (List.head zero)
 
-        _ ->
-            Nothing
 
-
-permutations : List a -> List (List a)
+permutations : List NumberCell -> List (List NumberCell)
 permutations xs0 =
     xs0 :: perms xs0 []
 
 
-perms : List a -> List a -> List (List a)
+perms : List NumberCell -> List NumberCell -> List (List NumberCell)
 perms tts is =
     case tts of
         [] ->
@@ -66,13 +65,12 @@ perms tts is =
 
         t :: ts ->
             let
+                interleave : List NumberCell -> List (List NumberCell) -> List (List NumberCell)
                 interleave xs r =
-                    let
-                        ( _, zs ) =
-                            interleaveX identity xs r
-                    in
-                    zs
+                    interleaveX identity xs r
+                        |> Tuple.second
 
+                interleaveX : (List NumberCell -> List NumberCell) -> List NumberCell -> List (List NumberCell) -> ( List NumberCell, List (List NumberCell) )
                 interleaveX f yys r =
                     case yys of
                         [] ->
@@ -89,10 +87,10 @@ perms tts is =
 
 
 findShortest : Set Position -> List (List NumberCell) -> Dict ( Int, Int ) Int -> Maybe Int -> Maybe Int
-findShortest walls cells cache =
+findShortest walls cells cache result =
     case cells of
         [] ->
-            identity
+            result
 
         x :: xs ->
             let
@@ -101,10 +99,14 @@ findShortest walls cells cache =
             in
             case len of
                 Nothing ->
-                    findShortest walls xs newCache
+                    findShortest walls xs newCache result
 
                 Just p ->
-                    Maybe.withDefault p >> min p >> Just >> findShortest walls xs newCache
+                    let
+                        newResult =
+                            Just <| (Maybe.withDefault p >> min p) <| result
+                    in
+                    findShortest walls xs newCache newResult
 
 
 traverse : Set Position -> Dict ( Int, Int ) Int -> List NumberCell -> Int -> ( Maybe Int, Dict ( Int, Int ) Int )
@@ -142,10 +144,10 @@ traverse walls cache path result =
                                         |> Dict.insert ( xNum, yNum ) x
                                         |> Dict.insert ( yNum, xNum ) x
                             in
-                            traverse walls newCache newPath <| result + x
+                            traverse walls newCache newPath (result + x)
 
                 Just x ->
-                    traverse walls cache newPath <| result + x
+                    traverse walls cache newPath (result + x)
 
         _ ->
             ( Just result, cache )
@@ -179,5 +181,4 @@ neighbors walls positions result =
                 neighbors walls xs result
 
             else
-                Set.insert pos result
-                    |> neighbors walls xs
+                neighbors walls xs (Set.insert pos result)

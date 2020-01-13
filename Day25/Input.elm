@@ -1,4 +1,4 @@
-module Day25.Input exposing (Instruction(..), Register(..), Value(..), parsedInput, rawInput)
+module Day25.Input exposing (Instruction(..), Register(..), Value(..), parsedInput)
 
 
 rawInput : String
@@ -37,7 +37,11 @@ jnz 1 -21"""
 
 parsedInput : List Instruction
 parsedInput =
-    List.filterMap parse <| List.reverse <| List.drop 1 <| List.reverse <| String.lines rawInput
+    String.lines rawInput
+        |> List.reverse
+        |> List.drop 1
+        |> List.reverse
+        |> List.filterMap parse
 
 
 type Instruction

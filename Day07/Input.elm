@@ -1,4 +1,4 @@
-module Day07.Input exposing (IPv7, parsedInput, rawInput)
+module Day07.Input exposing (IPv7, parsedInput)
 
 import Regex exposing (Regex)
 

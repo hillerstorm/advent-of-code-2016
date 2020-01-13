@@ -7,13 +7,13 @@ import Html exposing (Html, div, text)
 endParenIdx : String -> Int -> Maybe Int
 endParenIdx str idx =
     case String.uncons str of
-        Just ( ')', xs ) ->
+        Just ( ')', _ ) ->
             Just idx
 
         Just ( _, xs ) ->
-            endParenIdx xs <| idx + 1
+            endParenIdx xs (idx + 1)
 
-        Nothing ->
+        _ ->
             Nothing
 
 
@@ -23,8 +23,8 @@ parseMarker chars =
         Just idx ->
             case String.split "x" <| String.left idx chars of
                 [ a, b ] ->
-                    case ( String.toInt a, String.toInt b ) of
-                        ( Just ax, Just bx ) ->
+                    Maybe.map2
+                        (\ax bx ->
                             let
                                 fromIdx =
                                     idx + 1
@@ -39,9 +39,10 @@ parseMarker chars =
                                     String.dropLeft toIdx chars
                             in
                             ( newCount, newChars )
-
-                        _ ->
-                            ( 1, chars )
+                        )
+                        (String.toInt a)
+                        (String.toInt b)
+                        |> Maybe.withDefault ( 1, chars )
 
                 _ ->
                     ( 1, chars )
@@ -71,9 +72,6 @@ main : Html msg
 main =
     div []
         [ div []
-            [ text ("Input: " ++ rawInput)
-            ]
-        , div []
             [ text ("Result: " ++ (String.fromInt <| parse 0 rawInput))
             ]
         ]

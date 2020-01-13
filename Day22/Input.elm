@@ -1,4 +1,4 @@
-module Day22.Input exposing (Node, parsedInput, rawInput)
+module Day22.Input exposing (Node, parsedInput)
 
 
 rawInput : String

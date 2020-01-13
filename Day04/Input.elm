@@ -1,6 +1,6 @@
-module Day04.Input exposing (Room, parsedInput, rawInput)
+module Day04.Input exposing (Room, parsedInput)
 
-import Char exposing (isDigit, isLower)
+import Char exposing (isDigit)
 
 
 rawInput : String

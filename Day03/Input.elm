@@ -1,4 +1,4 @@
-module Day03.Input exposing (parsedInput, rawInput)
+module Day03.Input exposing (parsedInput)
 
 
 rawInput : String

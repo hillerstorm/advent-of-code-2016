@@ -42,9 +42,6 @@ main : Html msg
 main =
     div []
         [ div []
-            [ text ("Input: " ++ input)
-            ]
-        , div []
             [ text ("Result: " ++ solve "" 0)
             ]
         ]

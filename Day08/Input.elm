@@ -1,4 +1,4 @@
-module Day08.Input exposing (Instruction(..), parsedInput, rawInput)
+module Day08.Input exposing (Instruction(..), parsedInput)
 
 
 rawInput : String

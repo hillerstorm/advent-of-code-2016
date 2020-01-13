@@ -19,8 +19,7 @@ print =
 main : Html msg
 main =
     div []
-        [ div [] [ text ("Input: " ++ String.fromInt input) ]
-        , div [] [ text ("Part 1: " ++ (print <| steps ( 31, 39 ))) ]
+        [ div [] [ text ("Part 1: " ++ (print <| steps ( 31, 39 ))) ]
         , div [] [ text ("Part 2: " ++ (String.fromInt <| part2 intialPositions 0)) ]
         ]
 
@@ -45,7 +44,7 @@ part2 positions visited =
 
                 Just s ->
                     if s <= 50 then
-                        part2 xs <| visited + 1
+                        part2 xs (visited + 1)
 
                     else
                         part2 xs visited
@@ -79,7 +78,7 @@ neighbors positions result =
                 neighbors xs result
 
             else
-                neighbors xs <| Set.insert ( x, y ) result
+                neighbors xs (Set.insert ( x, y ) result)
 
 
 isWall : Position -> Bool

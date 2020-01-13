@@ -5,8 +5,8 @@ import Day02.Input exposing (Direction(..), parsedInput)
 import Html exposing (Html, div, text)
 import Process exposing (sleep)
 import Svg exposing (Svg, rect, svg)
-import Svg.Attributes exposing (..)
-import Task exposing (Task)
+import Svg.Attributes exposing (cx, cy, fill, fontFamily, fontSize, height, r, width, x, y)
+import Task
 
 
 type alias Model =
@@ -196,7 +196,7 @@ move ({ lastPosition, currentGrid } as model) direction currentRow =
             , trigger 0 Move
             )
 
-        chr ->
+        _ ->
             ( { model
                 | currentRow = Just currentRow
                 , lastPosition = nextPosition

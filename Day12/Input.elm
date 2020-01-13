@@ -1,4 +1,4 @@
-module Day12.Input exposing (Instruction(..), Register(..), Value(..), parsedInput, rawInput)
+module Day12.Input exposing (Instruction(..), Register(..), Value(..), parsedInput)
 
 
 rawInput : String

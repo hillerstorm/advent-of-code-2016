@@ -26,13 +26,13 @@ parse count chars =
 endParenIdx : String -> Int -> (Int -> Maybe ( Int, String )) -> Maybe ( Int, String )
 endParenIdx str idx f =
     case String.uncons str of
-        Just ( ')', xs ) ->
+        Just ( ')', _ ) ->
             f idx
 
         Just ( _, xs ) ->
             endParenIdx xs (idx + 1) f
 
-        Nothing ->
+        _ ->
             Nothing
 
 
@@ -40,40 +40,41 @@ parseMarker : String -> Int -> Maybe ( Int, String )
 parseMarker chars idx =
     case String.split "x" <| String.left idx chars of
         [ a, b ] ->
-            case ( String.toInt a, String.toInt b ) of
-                ( Just ax, Just 1 ) ->
-                    Just ( 0, String.dropLeft (idx + 1) chars )
-
-                ( Just ax, Just bx ) ->
-                    let
-                        fromIdx =
-                            idx + 1
-
-                        toIdx =
-                            fromIdx + ax
-
-                        newChars =
-                            String.dropLeft toIdx chars
-                    in
-                    if ax < 6 then
-                        Just ( ax * bx, newChars )
+            Maybe.map2
+                (\ax bx ->
+                    if bx == 1 then
+                        ( 0, String.dropLeft (idx + 1) chars )
 
                     else
                         let
-                            chrs =
-                                String.slice fromIdx toIdx chars
+                            fromIdx =
+                                idx + 1
 
-                            newCount =
-                                if String.contains "(" chrs then
-                                    parse 0 <| String.repeat bx chrs
+                            toIdx =
+                                fromIdx + ax
 
-                                else
-                                    ax * bx
+                            newChars =
+                                String.dropLeft toIdx chars
                         in
-                        Just ( newCount, newChars )
+                        if ax < 6 then
+                            ( ax * bx, newChars )
 
-                _ ->
-                    Nothing
+                        else
+                            let
+                                chrs =
+                                    String.slice fromIdx toIdx chars
+
+                                newCount =
+                                    if String.contains "(" chrs then
+                                        parse 0 <| String.repeat bx chrs
+
+                                    else
+                                        ax * bx
+                            in
+                            ( newCount, newChars )
+                )
+                (String.toInt a)
+                (String.toInt b)
 
         _ ->
             Nothing
@@ -83,9 +84,6 @@ main : Html msg
 main =
     div []
         [ div []
-            [ text ("Input: " ++ rawInput)
-            ]
-        , div []
             [ text ("Result: " ++ (String.fromInt <| parse 0 rawInput))
             ]
         ]
